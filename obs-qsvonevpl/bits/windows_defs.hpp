@@ -2,7 +2,9 @@
 #define __QSV_VPL_WINDOWS_DEFS_H__
 #endif
 #if defined(_WIN32) || defined(_WIN64)
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #define WIN32_LEAN_AND_MEAN
 #define D3D11_IGNORE_SDK_LAYERS
 

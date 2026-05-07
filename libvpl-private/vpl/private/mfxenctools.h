@@ -29,9 +29,9 @@ File Name: mfxenctools.h
 *******************************************************************************/
 #ifndef __MFXENCTOOLS_H__
 #define __MFXENCTOOLS_H__
-#include <vpl/mfxbrc.h>
-#include <vpl/mfxvideo++.h>
-#include <vpl/mfxvideo.h>
+#include "mfxbrc.h"
+#include "mfxvideo++.h"
+#include "mfxvideo.h"
 
 #ifdef __cplusplus
 extern "C"

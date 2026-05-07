@@ -39,13 +39,20 @@ jobs:
           git clone --depth 1 https://github.com/oneapi-src/oneVPL.git libvpl
         working-directory: ${{ github.workspace }}/obs-studio/plugins/${{ env.PLUGIN_NAME }}
 
+      - name: Setup Intel Media SDK Headers
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/Intel-Media-SDK/MediaSDK.git
+          cd MediaSDK
+          git sparse-checkout set api/include
+        working-directory: ${{ github.workspace }}/obs-studio/plugins/${{ env.PLUGIN_NAME }}
+
       - name: Add Plugin to OBS CMake
         run: |
           "add_subdirectory(${{ env.PLUGIN_NAME }})" | Out-File -FilePath plugins/CMakeLists.txt -Encoding utf8 -Append
         working-directory: ${{ github.workspace }}/obs-studio
 
       - name: Configure CMake
-        run: cmake --preset windows-x64
+        run: cmake --preset windows-x64 -DMEDIASDK_INCLUDE_DIR="${{ github.workspace }}/obs-studio/plugins/${{ env.PLUGIN_NAME }}/MediaSDK/api/include"
         working-directory: ${{ github.workspace }}/obs-studio
 
       - name: Build

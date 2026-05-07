@@ -4,7 +4,9 @@
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #define WIN32_LEAN_AND_MEAN
 #endif
 
@@ -30,16 +32,16 @@
 #include <vector>
 #endif
 #ifndef __MFXBRC_H__
-#include <vpl/mfxbrc.h>
+#include "mfxbrc.h"
 #endif
 #ifndef __MFXCOMMON_H__
-#include <vpl/mfxcommon.h>
+#include "mfxcommon.h"
 #endif
 #ifndef __MFXDEFS_H__
-#include <vpl/mfxdefs.h>
+#include "mfxdefs.h"
 #endif
 #ifndef __MFXSTRUCTURES_H__
-#include <vpl/mfxstructures.h>
+#include "mfxstructures.h"
 #endif
 #ifndef __MFXSURFACE_POOL_H__
 #include <vpl/mfxsurfacepool.h>

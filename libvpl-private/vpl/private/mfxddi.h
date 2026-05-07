@@ -21,7 +21,7 @@
 #ifndef __MFX_EXT_BUFFERS_H__
 #define __MFX_EXT_BUFFERS_H__
 
-#include <vpl/mfxcommon.h>
+#include "mfxcommon.h"
 
 
 #ifndef MFX_ADAPTIVE_PLAYBACK_DISABLE

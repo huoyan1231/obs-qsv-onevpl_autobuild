@@ -30,8 +30,8 @@ File Name: mfxav1.h
 #if !defined(__MFXAV1_H__)
 #define __MFXAV1_H__
 
-#include <vpl/mfxdefs.h>
-#include <vpl/mfxstructures.h>
+#include "mfxdefs.h"
+#include "mfxstructures.h"
 
 #if defined(__cplusplus)
 extern "C" {
