@@ -10,7 +10,7 @@ on:
 
 env:
   PLUGIN_NAME: obs-qsv-onevpl
-  OBS_VERSION: 32.0.4
+  OBS_VERSION: 32.1.2
 
 jobs:
   windows:
