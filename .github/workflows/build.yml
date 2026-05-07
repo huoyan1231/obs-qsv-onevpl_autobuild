@@ -10,7 +10,7 @@ on:
 
 env:
   PLUGIN_NAME: obs-qsv-onevpl
-  OBS_VERSION: 32.0.4
+  DEPS_VERSION: 2025-08-23
 
 jobs:
   windows:
@@ -20,48 +20,48 @@ jobs:
       run:
         shell: pwsh
     steps:
-      - name: Checkout OBS Studio
-        uses: actions/checkout@v4
-        with:
-          repository: obsproject/obs-studio
-          ref: ${{ env.OBS_VERSION }}
-          path: obs-studio
-          submodules: recursive
-          fetch-depth: 0
-
       - name: Checkout Plugin
         uses: actions/checkout@v4
         with:
-          path: obs-studio/plugins/${{ env.PLUGIN_NAME }}
+          path: plugin
 
-      - name: Setup oneVPL submodule
+      - name: Setup oneVPL
         run: |
           git clone https://github.com/oneapi-src/oneVPL.git libvpl
-        working-directory: ${{ github.workspace }}/obs-studio/plugins/${{ env.PLUGIN_NAME }}
+        working-directory: ${{ github.workspace }}/plugin
 
-      - name: Add Plugin to OBS CMake
+      - name: Download Prebuilt obs-deps
         run: |
-          "add_subdirectory(${{ env.PLUGIN_NAME }})" | Out-File -FilePath plugins/CMakeLists.txt -Encoding utf8 -Append
-        working-directory: ${{ github.workspace }}/obs-studio
+          Invoke-WebRequest -Uri "https://github.com/obsproject/obs-deps/releases/download/${{ env.DEPS_VERSION }}/windows-deps-${{ env.DEPS_VERSION }}-x64.zip" -OutFile deps.zip
+          7z x deps.zip -o"${{ github.workspace }}/deps" -y | Out-Null
+          Remove-Item deps.zip
+
+      - name: Download Prebuilt Qt6
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/obsproject/obs-deps/releases/download/${{ env.DEPS_VERSION }}/windows-deps-qt6-${{ env.DEPS_VERSION }}-x64.zip" -OutFile qt6.zip
+          7z x qt6.zip -o"${{ github.workspace }}/deps" -y | Out-Null
+          Remove-Item qt6.zip
 
       - name: Configure CMake
-        run: cmake --preset windows-x64
-        working-directory: ${{ github.workspace }}/obs-studio
+        run: |
+          cmake -S plugin -B build_x64 `
+            -G "Visual Studio 17 2022" -A x64 `
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/deps/obs-deps-${{ env.DEPS_VERSION }}-x64;${{ github.workspace }}/deps/obs-deps-qt6-${{ env.DEPS_VERSION }}-x64" `
+            -DENABLE_HEVC=ON
 
       - name: Build
-        run: cmake --build --preset windows-x64 --config RelWithDebInfo
-        working-directory: ${{ github.workspace }}/obs-studio
+        run: |
+          cmake --build build_x64 --config RelWithDebInfo
 
       - name: Package Plugin
         run: |
           $PackageDir = "${{ github.workspace }}/package"
-          $Rundir = "${{ github.workspace }}/obs-studio/build_x64/rundir/RelWithDebInfo"
           New-Item -ItemType Directory -Path "$PackageDir/obs-plugins/64bit" -Force
           New-Item -ItemType Directory -Path "$PackageDir/data/obs-plugins/${{ env.PLUGIN_NAME }}" -Force
-          Copy-Item "$Rundir/obs-plugins/64bit/obs-qsvonevpl.dll" "$PackageDir/obs-plugins/64bit/" -ErrorAction SilentlyContinue
-          Copy-Item "$Rundir/obs-plugins/64bit/obs-qsvonevpl.pdb" "$PackageDir/obs-plugins/64bit/" -ErrorAction SilentlyContinue
-          if (Test-Path "$Rundir/data/obs-plugins/${{ env.PLUGIN_NAME }}") {
-            Copy-Item "$Rundir/data/obs-plugins/${{ env.PLUGIN_NAME }}/*" "$PackageDir/data/obs-plugins/${{ env.PLUGIN_NAME }}/" -Recurse
+          Copy-Item "build_x64/obs-qsvonevpl/RelWithDebInfo/obs-qsvonevpl.dll" "$PackageDir/obs-plugins/64bit/" -ErrorAction SilentlyContinue
+          Copy-Item "build_x64/obs-qsvonevpl/RelWithDebInfo/obs-qsvonevpl.pdb" "$PackageDir/obs-plugins/64bit/" -ErrorAction SilentlyContinue
+          if (Test-Path "plugin/data/locale") {
+            Copy-Item "plugin/data/locale/*" "$PackageDir/data/obs-plugins/${{ env.PLUGIN_NAME }}/" -Recurse
           }
 
       - name: Upload Artifacts
@@ -97,28 +97,25 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake -S . -B build_x64 \
+          cmake -S plugin -B build_x64 \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DENABLE_HEVC=ON
-        working-directory: ${{ github.workspace }}/plugin
 
       - name: Build
         run: cmake --build build_x64
-        working-directory: ${{ github.workspace }}/plugin
 
       - name: Package Plugin
         run: |
           mkdir -p package/obs-plugins/64bit
           mkdir -p package/data/obs-plugins/${{ env.PLUGIN_NAME }}
           cp build_x64/obs-qsvonevpl/obs-qsvonevpl.so package/obs-plugins/64bit/
-          if [ -d "data/locale" ]; then
-            cp -r data/locale package/data/obs-plugins/${{ env.PLUGIN_NAME }}/
+          if [ -d "plugin/data/locale" ]; then
+            cp -r plugin/data/locale package/data/obs-plugins/${{ env.PLUGIN_NAME }}/
           fi
-        working-directory: ${{ github.workspace }}/plugin
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PLUGIN_NAME }}-${{ github.sha }}-ubuntu-x86_64
-          path: ${{ github.workspace }}/plugin/package/*
+          path: ${{ github.workspace }}/package/*
