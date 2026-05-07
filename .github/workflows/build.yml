@@ -20,7 +20,15 @@ jobs:
       run:
         shell: pwsh
     steps:
+      - name: Cache OBS Studio Source
+        id: cache-obs
+        uses: actions/cache@v4
+        with:
+          path: obs-studio
+          key: obs-studio-${{ env.OBS_VERSION }}-${{ runner.os }}
+
       - name: Checkout OBS Studio
+        if: steps.cache-obs.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
           repository: obsproject/obs-studio
@@ -34,12 +42,28 @@ jobs:
         with:
           path: obs-studio/plugins/${{ env.PLUGIN_NAME }}
 
+      - name: Cache oneVPL
+        id: cache-onevpl
+        uses: actions/cache@v4
+        with:
+          path: obs-studio/plugins/${{ env.PLUGIN_NAME }}/libvpl
+          key: onevpl-${{ runner.os }}
+
       - name: Setup oneVPL
+        if: steps.cache-onevpl.outputs.cache-hit != 'true'
         run: |
           git clone --depth 1 https://github.com/oneapi-src/oneVPL.git libvpl
         working-directory: ${{ github.workspace }}/obs-studio/plugins/${{ env.PLUGIN_NAME }}
 
+      - name: Cache Intel Media SDK Headers
+        id: cache-mediasdk
+        uses: actions/cache@v4
+        with:
+          path: obs-studio/plugins/${{ env.PLUGIN_NAME }}/MediaSDK
+          key: mediasdk-${{ runner.os }}
+
       - name: Setup Intel Media SDK Headers
+        if: steps.cache-mediasdk.outputs.cache-hit != 'true'
         run: |
           git clone --depth 1 --filter=blob:none --sparse https://github.com/Intel-Media-SDK/MediaSDK.git
           cd MediaSDK
@@ -48,15 +72,19 @@ jobs:
 
       - name: Add Plugin to OBS CMake
         run: |
-          "add_subdirectory(${{ env.PLUGIN_NAME }})" | Out-File -FilePath plugins/CMakeLists.txt -Encoding utf8 -Append
+          $cmakeFile = "plugins/CMakeLists.txt"
+          $line = "add_subdirectory(${{ env.PLUGIN_NAME }})"
+          if (-not (Select-String -Path $cmakeFile -Pattern $line -Quiet)) {
+            $line | Out-File -FilePath $cmakeFile -Encoding utf8 -Append
+          }
         working-directory: ${{ github.workspace }}/obs-studio
 
       - name: Configure CMake
         run: cmake --preset windows-x64 -DMEDIASDK_INCLUDE_DIR="${{ github.workspace }}/obs-studio/plugins/${{ env.PLUGIN_NAME }}/MediaSDK/api/include"
         working-directory: ${{ github.workspace }}/obs-studio
 
-      - name: Build
-        run: cmake --build --preset windows-x64 --config RelWithDebInfo
+      - name: Build (plugin only)
+        run: cmake --build --preset windows-x64 --config RelWithDebInfo --target obs-qsvonevpl
         working-directory: ${{ github.workspace }}/obs-studio
 
       - name: Package Plugin
