@@ -74,7 +74,7 @@ jobs:
         run: |
           $cmakeFile = "plugins/CMakeLists.txt"
           $line = "add_subdirectory(${{ env.PLUGIN_NAME }})"
-          if (-not (Select-String -Path $cmakeFile -Pattern $line -Quiet)) {
+          if (-not (Select-String -Path $cmakeFile -Pattern $line -SimpleMatch -Quiet)) {
             $line | Out-File -FilePath $cmakeFile -Encoding utf8 -Append
           }
         working-directory: ${{ github.workspace }}/obs-studio
@@ -128,12 +128,19 @@ jobs:
             libwayland-dev \
             libdrm-dev
 
+      - name: Setup OBS Headers
+        run: |
+          wget -q -O obs-av1.h https://raw.githubusercontent.com/obsproject/obs-studio/${{ env.OBS_VERSION }}/libobs/obs-av1.h
+          sudo mkdir -p /usr/local/include/obs
+          sudo cp obs-av1.h /usr/local/include/obs/
+
       - name: Configure CMake
         run: |
           cmake -S plugin -B build_x64 \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-            -DENABLE_HEVC=ON
+            -DENABLE_HEVC=ON \
+            -DCMAKE_CXX_FLAGS="-I/usr/local/include/obs"
 
       - name: Build
         run: cmake --build build_x64
