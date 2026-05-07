@@ -94,7 +94,8 @@ static bool ParamsVisibilityModifier(obs_properties_t *Properties,
   obs_property_set_visible(Prop, bVisible);
 
   bVisible = std::strcmp(rate_control, "CQP") == 0 ||
-             std::strcmp(rate_control, "ICQ") == 0;
+             std::strcmp(rate_control, "ICQ") == 0 ||
+             std::strcmp(rate_control, "LA_ICQ") == 0;
   Prop = obs_properties_get(Properties, "bitrate");
   obs_property_set_visible(Prop, !bVisible);
 
@@ -112,12 +113,16 @@ static bool ParamsVisibilityModifier(obs_properties_t *Properties,
   if (Prop)
     obs_property_set_visible(Prop, bVisible);
 
-  bVisible = std::strcmp(rate_control, "ICQ") == 0;
+  bVisible = std::strcmp(rate_control, "ICQ") == 0 ||
+             std::strcmp(rate_control, "LA_ICQ") == 0;
   Prop = obs_properties_get(Properties, "icq_quality");
   obs_property_set_visible(Prop, bVisible);
 
-  bVisible = std::strcmp(rate_control, "CBR") == 0 ||
-             std::strcmp(rate_control, "VBR") == 0;
+  bool bIsLAICQ = std::strcmp(rate_control, "LA_ICQ") == 0;
+
+  bVisible = (std::strcmp(rate_control, "CBR") == 0 ||
+              std::strcmp(rate_control, "VBR") == 0) &&
+             !bIsLAICQ;
   Prop = obs_properties_get(Properties, "enctools");
   obs_property_set_visible(Prop, bVisible);
   Prop = obs_properties_get(Properties, "extbrc");
@@ -126,27 +131,24 @@ static bool ParamsVisibilityModifier(obs_properties_t *Properties,
   const char *lookahead = obs_data_get_string(Settings, "lookahead");
 
   bVisible = (std::strcmp(rate_control, "CBR") == 0 ||
-              std::strcmp(rate_control, "VBR") == 0);
+              std::strcmp(rate_control, "VBR") == 0 ||
+              bIsLAICQ);
   Prop = obs_properties_get(Properties, "lookahead");
   obs_property_set_visible(Prop, bVisible);
-  if (bVisible) {
 
-    bool bVisible_lookahead_hq = std::strcmp(lookahead, "HQ") == 0;
+  if (bIsLAICQ) {
+    obs_data_set_string(Settings, "lookahead", "HQ");
+  }
+
+  if (bVisible) {
+    bool bVisible_lookahead_hq = std::strcmp(lookahead, "HQ") == 0 || bIsLAICQ;
     bool bVisible_lookahead_lp = std::strcmp(lookahead, "LP") == 0;
     Prop = obs_properties_get(Properties, "lookahead_ds");
     obs_property_set_visible(
         Prop, ((bVisible_lookahead_hq || bVisible_lookahead_lp) && bVisible));
 
-    //if ((bVisible_lookahead_hq /* || bLAOptVisibleLP*/)) {
-    //  obs_data_set_string(Settings, "extbrc", "OFF");
-    //}
-
     Prop = obs_properties_get(Properties, "lookahead_latency");
     obs_property_set_visible(Prop, (bVisible_lookahead_hq && bVisible));
-
-    // if ((bLAOptVisibleHQ && bLAVisible)) {
-    //   obs_data_set_string(Settings, "hrd_conformance", "OFF");
-    // }
 
     if (bVisible_lookahead_lp) {
       obs_data_set_string(Settings, "enctools", "OFF");
@@ -155,7 +157,8 @@ static bool ParamsVisibilityModifier(obs_properties_t *Properties,
 
   bVisible = std::strcmp(rate_control, "CBR") == 0 ||
              std::strcmp(rate_control, "VBR") == 0 ||
-             std::strcmp(rate_control, "ICQ") == 0;
+             std::strcmp(rate_control, "ICQ") == 0 ||
+             std::strcmp(rate_control, "LA_ICQ") == 0;
   Prop = obs_properties_get(Properties, "mbbrc");
   obs_property_set_visible(Prop, bVisible);
   if (!bVisible) {
@@ -1089,8 +1092,12 @@ static void GetEncoderParams(plugin_context *Context, obs_data_t *Settings) {
     Context->EncoderParams.RateControl = MFX_RATECONTROL_CQP;
   } else if (std::strcmp(RateControlData, "ICQ") == 0) {
     Context->EncoderParams.RateControl = MFX_RATECONTROL_ICQ;
-  } else if (std::strcmp(RateControlData, "LA_EXT_ICQ") == 0) {
+  } else if (std::strcmp(RateControlData, "LA_ICQ") == 0) {
     Context->EncoderParams.RateControl = MFX_RATECONTROL_ICQ;
+    Context->EncoderParams.Lookahead = true;
+    if (Context->EncoderParams.LADepth == 0) {
+      Context->EncoderParams.LADepth = 60;
+    }
   }
 
   if (std::strcmp(DenoiseModeData, "DEFAULT") == 0) {
