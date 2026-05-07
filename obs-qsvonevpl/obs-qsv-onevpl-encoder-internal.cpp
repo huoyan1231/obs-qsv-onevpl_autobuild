@@ -578,6 +578,42 @@ mfxStatus QSVEncoder::SetEncoderParams(struct encoder_params *InputParams,
     QSVEncodeParams.mfx.ICQQuality =
         static_cast<mfxU16>(InputParams->ICQQuality);
     break;
+  case MFX_RATECONTROL_AVBR:
+    QSVEncodeParams.mfx.TargetKbps =
+        static_cast<mfxU16>(InputParams->TargetBitRate);
+    QSVEncodeParams.mfx.BufferSizeInKB =
+        static_cast<mfxU16>((QSVEncodeParams.mfx.TargetKbps / 8) * 1);
+    if (InputParams->CustomBufferSize == true && InputParams->BufferSize > 0) {
+      QSVEncodeParams.mfx.BufferSizeInKB =
+          static_cast<mfxU16>(InputParams->BufferSize);
+      info("\tCustomBufferSize set: ON");
+    }
+    QSVEncodeParams.mfx.InitialDelayInKB =
+        static_cast<mfxU16>(QSVEncodeParams.mfx.BufferSizeInKB / 2);
+    info("\tBufferSize set to: %d KB",
+         QSVEncodeParams.mfx.BufferSizeInKB * 100);
+    break;
+  case MFX_RATECONTROL_VCM:
+    QSVEncodeParams.mfx.QPI = static_cast<mfxU16>(InputParams->QPI);
+    QSVEncodeParams.mfx.QPB = static_cast<mfxU16>(InputParams->QPB);
+    QSVEncodeParams.mfx.QPP = static_cast<mfxU16>(InputParams->QPP);
+    break;
+  case MFX_RATECONTROL_QVBR:
+    QSVEncodeParams.mfx.TargetKbps =
+        static_cast<mfxU16>(InputParams->TargetBitRate);
+    QSVEncodeParams.mfx.MaxKbps = static_cast<mfxU16>(InputParams->MaxBitRate);
+    QSVEncodeParams.mfx.BufferSizeInKB =
+        static_cast<mfxU16>((QSVEncodeParams.mfx.TargetKbps / 8) * 1);
+    if (InputParams->CustomBufferSize == true && InputParams->BufferSize > 0) {
+      QSVEncodeParams.mfx.BufferSizeInKB =
+          static_cast<mfxU16>(InputParams->BufferSize);
+      info("\tCustomBufferSize set: ON");
+    }
+    QSVEncodeParams.mfx.InitialDelayInKB =
+        static_cast<mfxU16>(QSVEncodeParams.mfx.BufferSizeInKB / 2);
+    info("\tBufferSize set to: %d KB",
+         QSVEncodeParams.mfx.BufferSizeInKB * 100);
+    break;
   }
 
   QSVEncodeParams.AsyncDepth = static_cast<mfxU16>(InputParams->AsyncDepth);
@@ -721,7 +757,9 @@ mfxStatus QSVEncoder::SetEncoderParams(struct encoder_params *InputParams,
     }
 
     if (QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_CBR ||
-        QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_VBR) {
+        QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_VBR ||
+        QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_AVBR ||
+        QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_QVBR) {
       if (InputParams->Lookahead == true) {
         CO2Params->LookAheadDepth = InputParams->LADepth;
         info("\tLookahead set to: ON");
@@ -789,7 +827,9 @@ mfxStatus QSVEncoder::SetEncoderParams(struct encoder_params *InputParams,
          GetCodingOptStatus(CO2Params->AdaptiveB).c_str());
 
     if (InputParams->RateControl == MFX_RATECONTROL_CBR ||
-        InputParams->RateControl == MFX_RATECONTROL_VBR) {
+        InputParams->RateControl == MFX_RATECONTROL_VBR ||
+        InputParams->RateControl == MFX_RATECONTROL_AVBR ||
+        InputParams->RateControl == MFX_RATECONTROL_QVBR) {
       CO2Params->LookAheadDS = MFX_LOOKAHEAD_DS_OFF;
       if (InputParams->LookAheadDS.has_value() == true) {
         switch (InputParams->LookAheadDS.value()) {
@@ -918,7 +958,8 @@ mfxStatus QSVEncoder::SetEncoderParams(struct encoder_params *InputParams,
       info("\tScenario: REMOTE GAMING");
     }
 
-    if (QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_CQP) {
+    if (QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_CQP ||
+        QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_VCM) {
       CO3Params->EnableMBQP = MFX_CODINGOPTION_ON;
     }
 
@@ -951,7 +992,8 @@ mfxStatus QSVEncoder::SetEncoderParams(struct encoder_params *InputParams,
     info("\tAdaptiveLTR set: %s",
          GetCodingOptStatus(CO3Params->AdaptiveLTR).c_str());
 
-    if (QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_CBR) {
+    if (QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_CBR ||
+        QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_AVBR) {
 
       if (QSVEncodeParams.mfx.CodecId == MFX_CODEC_AVC ||
           QSVEncodeParams.mfx.CodecId == MFX_CODEC_HEVC) {
@@ -1309,6 +1351,7 @@ bool QSVEncoder::UpdateParams(struct encoder_params *InputParams) {
   QSVResetParams.NumExtParam = 0;
   switch (InputParams->RateControl) {
   case MFX_RATECONTROL_CBR:
+  case MFX_RATECONTROL_AVBR:
     if (QSVResetParams.mfx.TargetKbps != InputParams->TargetBitRate) {
       QSVResetParams.mfx.TargetKbps =
           static_cast<mfxU16>(InputParams->TargetBitRate);
@@ -1316,6 +1359,7 @@ bool QSVEncoder::UpdateParams(struct encoder_params *InputParams) {
     }
     break;
   case MFX_RATECONTROL_VBR:
+  case MFX_RATECONTROL_QVBR:
     if (QSVResetParams.mfx.TargetKbps != InputParams->TargetBitRate) {
       QSVResetParams.mfx.TargetKbps =
           static_cast<mfxU16>(InputParams->TargetBitRate);
@@ -1331,6 +1375,7 @@ bool QSVEncoder::UpdateParams(struct encoder_params *InputParams) {
     }
     break;
   case MFX_RATECONTROL_CQP:
+  case MFX_RATECONTROL_VCM:
     if (QSVResetParams.mfx.QPI != InputParams->QPI) {
       QSVResetParams.mfx.QPI = static_cast<mfxU16>(InputParams->QPI);
       QSVResetParams.mfx.QPB = static_cast<mfxU16>(InputParams->QPB);

@@ -111,14 +111,16 @@ static inline const char *TEXT_INTRA_REF_QP_DELTA =
 
 static inline const char *TEXT_GPU_NUMBER = obs_module_text("Select GPU");
 
-static const char *const qsv_ratecontrols_h264[] = {"CBR", "VBR", "CQP", "ICQ",
-                                                    "LA_ICQ", 0};
+static const char *const qsv_ratecontrols_h264[] = {"CBR", "VBR", "CQP", "AVBR",
+                                                    "ICQ", "VCM", "LA_ICQ",
+                                                    "QVBR", 0};
 
-static const char *const qsv_ratecontrols_hevc[] = {"CBR", "VBR", "CQP", "ICQ",
-                                                     "LA_ICQ", 0};
+static const char *const qsv_ratecontrols_hevc[] = {"CBR", "VBR", "CQP", "AVBR",
+                                                    "ICQ", "VCM", "LA_ICQ",
+                                                    "QVBR", 0};
 
-static const char *const qsv_ratecontrols_av1[] = {"CBR", "VBR", "CQP", "ICQ",
-                                                    "LA_ICQ", 0};
+static const char *const qsv_ratecontrols_av1[] = {"CBR", "VBR", "CQP", "AVBR",
+                                                   "ICQ", "LA_ICQ", "QVBR", 0};
 
 static const char *const qsv_profile_names_h264[] = {
     "high", "main", "baseline", "extended", "high10", "high422", 0};

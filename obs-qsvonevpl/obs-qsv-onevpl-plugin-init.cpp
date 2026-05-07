@@ -6,6 +6,69 @@
 #include "obs-qsv-onevpl-encoder.hpp"
 #endif
 
+struct qsv_rate_control_info {
+    const char *name;
+    mfxU16 min_platform;
+};
+
+static const struct qsv_rate_control_info qsv_rate_control_info_list[] = {
+    {"CBR", 0},
+    {"VBR", 0},
+    {"CQP", 0},
+    {"AVBR", MFX_PLATFORM_HASWELL},
+    {"ICQ", MFX_PLATFORM_HASWELL},
+    {"VCM", MFX_PLATFORM_SKYLAKE},
+    {"LA_ICQ", MFX_PLATFORM_HASWELL},
+    {"QVBR", MFX_PLATFORM_DG2},
+    {nullptr, 0}};
+
+static mfxPlatform CachedQSVPlatform{};
+static bool CachedQSVPlatformValid = false;
+
+static mfxU16 QueryPlatformCodeName() {
+    if (CachedQSVPlatformValid) {
+        return CachedQSVPlatform.CodeName;
+    }
+    mfxLoader Loader = MFXLoad();
+    if (Loader == nullptr) {
+        return 0;
+    }
+    mfxConfig Config = MFXCreateConfig(Loader);
+    mfxVariant Variant{};
+    Variant.Type = MFX_VARIANT_TYPE_U32;
+    Variant.Data.U32 = MFX_IMPL_TYPE_HARDWARE;
+    MFXSetConfigFilterProperty(
+        Config,
+        reinterpret_cast<const mfxU8 *>("mfxImplDescription.Impl.mfxImplType"),
+        Variant);
+
+    Config = MFXCreateConfig(Loader);
+    Variant.Type = MFX_VARIANT_TYPE_U32;
+    Variant.Data.U32 = static_cast<mfxU32>(0x8086);
+    MFXSetConfigFilterProperty(
+        Config,
+        reinterpret_cast<const mfxU8 *>("mfxImplDescription.VendorID"),
+        Variant);
+
+    Config = MFXCreateConfig(Loader);
+    Variant.Type = MFX_VARIANT_TYPE_PTR;
+    Variant.Data.Ptr = mfxHDL("mfx-gen");
+    MFXSetConfigFilterProperty(
+        Config,
+        reinterpret_cast<const mfxU8 *>("mfxImplDescription.ImplName"),
+        Variant);
+
+    mfxSession Session{};
+    mfxStatus Status = MFXCreateSession(Loader, 0, &Session);
+    if (Status >= MFX_ERR_NONE) {
+        MFXVideoCORE_QueryPlatform(Session, &CachedQSVPlatform);
+        MFXClose(Session);
+        CachedQSVPlatformValid = true;
+    }
+    MFXUnload(Loader);
+    return CachedQSVPlatform.CodeName;
+}
+
 static void SetDefaultEncoderParams(obs_data_t *Settings,
                                     enum codec_enum Codec) {
   obs_data_set_default_string(Settings, "target_usage", "TU4 (Balanced)");
@@ -89,17 +152,25 @@ static bool ParamsVisibilityModifier(obs_properties_t *Properties,
                                      obs_property_t *Prop,
                                      obs_data_t *Settings) {
   const char *rate_control = obs_data_get_string(Settings, "rate_control");
-  bool bVisible = std::strcmp(rate_control, "VBR") == 0;
+
+  bool bIsCBR = std::strcmp(rate_control, "CBR") == 0;
+  bool bIsVBR = std::strcmp(rate_control, "VBR") == 0;
+  bool bIsAVBR = std::strcmp(rate_control, "AVBR") == 0;
+  bool bIsCQP = std::strcmp(rate_control, "CQP") == 0;
+  bool bIsICQ = std::strcmp(rate_control, "ICQ") == 0;
+  bool bIsVCM = std::strcmp(rate_control, "VCM") == 0;
+  bool bIsLAICQ = std::strcmp(rate_control, "LA_ICQ") == 0;
+  bool bIsQVBR = std::strcmp(rate_control, "QVBR") == 0;
+
+  bool bVisible = bIsVBR || bIsQVBR;
   Prop = obs_properties_get(Properties, "max_bitrate");
   obs_property_set_visible(Prop, bVisible);
 
-  bVisible = std::strcmp(rate_control, "CQP") == 0 ||
-             std::strcmp(rate_control, "ICQ") == 0 ||
-             std::strcmp(rate_control, "LA_ICQ") == 0;
+  bVisible = bIsCQP || bIsICQ || bIsLAICQ || bIsVCM;
   Prop = obs_properties_get(Properties, "bitrate");
   obs_property_set_visible(Prop, !bVisible);
 
-  bVisible = std::strcmp(rate_control, "CQP") == 0;
+  bVisible = bIsCQP || bIsVCM;
   Prop = obs_properties_get(Properties, "qpi");
   if (Prop)
     obs_property_set_visible(Prop, bVisible);
@@ -113,16 +184,11 @@ static bool ParamsVisibilityModifier(obs_properties_t *Properties,
   if (Prop)
     obs_property_set_visible(Prop, bVisible);
 
-  bVisible = std::strcmp(rate_control, "ICQ") == 0 ||
-             std::strcmp(rate_control, "LA_ICQ") == 0;
+  bVisible = bIsICQ || bIsLAICQ;
   Prop = obs_properties_get(Properties, "icq_quality");
   obs_property_set_visible(Prop, bVisible);
 
-  bool bIsLAICQ = std::strcmp(rate_control, "LA_ICQ") == 0;
-
-  bVisible = (std::strcmp(rate_control, "CBR") == 0 ||
-              std::strcmp(rate_control, "VBR") == 0) &&
-             !bIsLAICQ;
+  bVisible = (bIsCBR || bIsVBR || bIsAVBR || bIsQVBR) && !bIsLAICQ;
   Prop = obs_properties_get(Properties, "enctools");
   obs_property_set_visible(Prop, bVisible);
   Prop = obs_properties_get(Properties, "extbrc");
@@ -130,9 +196,7 @@ static bool ParamsVisibilityModifier(obs_properties_t *Properties,
 
   const char *lookahead = obs_data_get_string(Settings, "lookahead");
 
-  bVisible = (std::strcmp(rate_control, "CBR") == 0 ||
-              std::strcmp(rate_control, "VBR") == 0 ||
-              bIsLAICQ);
+  bVisible = bIsCBR || bIsVBR || bIsAVBR || bIsQVBR || bIsLAICQ;
   Prop = obs_properties_get(Properties, "lookahead");
   obs_property_set_visible(Prop, bVisible);
 
@@ -155,10 +219,7 @@ static bool ParamsVisibilityModifier(obs_properties_t *Properties,
     }
   }
 
-  bVisible = std::strcmp(rate_control, "CBR") == 0 ||
-             std::strcmp(rate_control, "VBR") == 0 ||
-             std::strcmp(rate_control, "ICQ") == 0 ||
-             std::strcmp(rate_control, "LA_ICQ") == 0;
+  bVisible = bIsCBR || bIsVBR || bIsAVBR || bIsQVBR || bIsICQ || bIsLAICQ;
   Prop = obs_properties_get(Properties, "mbbrc");
   obs_property_set_visible(Prop, bVisible);
   if (!bVisible) {
@@ -244,12 +305,17 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
   Prop = obs_properties_add_list(Props, "rate_control", TEXT_RATE_CONTROL,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
 
-  if (Codec == QSV_CODEC_AVC) {
-    AddStrings(Prop, qsv_ratecontrols_h264);
-  } else if (Codec == QSV_CODEC_HEVC) {
-    AddStrings(Prop, qsv_ratecontrols_hevc);
-  } else if (Codec == QSV_CODEC_AV1) {
-    AddStrings(Prop, qsv_ratecontrols_av1);
+  mfxU16 platformCode = QueryPlatformCodeName();
+  const struct qsv_rate_control_info *rcInfo = qsv_rate_control_info_list;
+  while (rcInfo->name) {
+    if (platformCode == 0 || platformCode >= rcInfo->min_platform) {
+      bool skipForAV1 = Codec == QSV_CODEC_AV1 &&
+                        std::strcmp(rcInfo->name, "VCM") == 0;
+      if (!skipForAV1) {
+        obs_property_list_add_string(Prop, rcInfo->name, rcInfo->name);
+      }
+    }
+    rcInfo++;
   }
 
   obs_property_set_modified_callback(Prop, ParamsVisibilityModifier);
@@ -1090,14 +1156,20 @@ static void GetEncoderParams(plugin_context *Context, obs_data_t *Settings) {
     Context->EncoderParams.RateControl = MFX_RATECONTROL_VBR;
   } else if (std::strcmp(RateControlData, "CQP") == 0) {
     Context->EncoderParams.RateControl = MFX_RATECONTROL_CQP;
+  } else if (std::strcmp(RateControlData, "AVBR") == 0) {
+    Context->EncoderParams.RateControl = MFX_RATECONTROL_AVBR;
   } else if (std::strcmp(RateControlData, "ICQ") == 0) {
     Context->EncoderParams.RateControl = MFX_RATECONTROL_ICQ;
+  } else if (std::strcmp(RateControlData, "VCM") == 0) {
+    Context->EncoderParams.RateControl = MFX_RATECONTROL_VCM;
   } else if (std::strcmp(RateControlData, "LA_ICQ") == 0) {
     Context->EncoderParams.RateControl = MFX_RATECONTROL_ICQ;
     Context->EncoderParams.Lookahead = true;
     if (Context->EncoderParams.LADepth == 0) {
       Context->EncoderParams.LADepth = 60;
     }
+  } else if (std::strcmp(RateControlData, "QVBR") == 0) {
+    Context->EncoderParams.RateControl = MFX_RATECONTROL_QVBR;
   }
 
   if (std::strcmp(DenoiseModeData, "DEFAULT") == 0) {
@@ -1219,16 +1291,20 @@ static void GetEncoderParams(plugin_context *Context, obs_data_t *Settings) {
   info("\tRate control: %s\n", RateControlData);
 
   if (Context->EncoderParams.RateControl != MFX_RATECONTROL_ICQ &&
-      Context->EncoderParams.RateControl != MFX_RATECONTROL_CQP)
+      Context->EncoderParams.RateControl != MFX_RATECONTROL_CQP &&
+      Context->EncoderParams.RateControl != MFX_RATECONTROL_VCM)
     info("\tTarget bitrate: %d", Context->EncoderParams.TargetBitRate * 100);
 
-  if (Context->EncoderParams.RateControl == MFX_RATECONTROL_VBR)
+  if (Context->EncoderParams.RateControl == MFX_RATECONTROL_VBR ||
+      Context->EncoderParams.RateControl == MFX_RATECONTROL_QVBR)
     info("\tMax bitrate: %d", Context->EncoderParams.MaxBitRate * 100);
 
-  if (Context->EncoderParams.RateControl == MFX_RATECONTROL_ICQ)
+  if (Context->EncoderParams.RateControl == MFX_RATECONTROL_ICQ &&
+      std::strcmp(RateControlData, "ICQ") == 0)
     info("\tICQ Quality: %d", Context->EncoderParams.ICQQuality);
 
-  if (Context->EncoderParams.RateControl == MFX_RATECONTROL_CQP)
+  if (Context->EncoderParams.RateControl == MFX_RATECONTROL_CQP ||
+      Context->EncoderParams.RateControl == MFX_RATECONTROL_VCM)
     info("\tCQP: %d", ActualCQPData);
 
   info("\tFPS numerator: %d", VOI->fps_num);
