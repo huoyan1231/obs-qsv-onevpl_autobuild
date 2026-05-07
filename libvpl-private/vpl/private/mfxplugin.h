@@ -29,7 +29,7 @@ File Name: mfxplugin.h
 *******************************************************************************/
 #ifndef __MFXPLUGIN_H__
 #define __MFXPLUGIN_H__
-#include "mfxvideo.h"
+#include "mfxdeprecated.h"
 
 #ifdef __cplusplus
 extern "C"
