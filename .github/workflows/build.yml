@@ -2,10 +2,10 @@ name: Build obs-qsv-onevpl
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, NEW]
     tags: ['v*']
   pull_request:
-    branches: [main, master]
+    branches: [main, master, NEW]
   workflow_dispatch:
 
 env:
