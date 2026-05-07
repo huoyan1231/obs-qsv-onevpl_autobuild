@@ -27,6 +27,7 @@ jobs:
           ref: ${{ env.OBS_VERSION }}
           path: obs-studio
           fetch-depth: 1
+          submodules: recursive
 
       - name: Checkout Plugin
         uses: actions/checkout@v4
