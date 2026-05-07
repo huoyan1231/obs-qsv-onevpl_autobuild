@@ -1,3 +1,4 @@
+#pragma warning(disable : 4996)
 #include "obs-qsv-onevpl-encoder-internal.hpp"
 
 QSVEncoder::QSVEncoder()

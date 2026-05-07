@@ -1,5 +1,7 @@
 
 
+#pragma warning(disable : 4996)
+
 #ifndef __QSV_VPL_ENCODER_H__
 #include "obs-qsv-onevpl-encoder.hpp"
 #endif
