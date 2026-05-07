@@ -42,6 +42,15 @@ jobs:
           7z x qt6.zip -o"${{ github.workspace }}/deps" -y | Out-Null
           Remove-Item qt6.zip
 
+      - name: Inspect deps directory
+        run: |
+          Write-Output "=== deps root ==="
+          Get-ChildItem -Path "${{ github.workspace }}/deps" -Depth 0
+          Write-Output "=== lib/cmake ==="
+          Get-ChildItem -Path "${{ github.workspace }}/deps/lib/cmake" -Recurse -Filter "*.cmake" | Select-Object FullName
+          Write-Output "=== all files ==="
+          Get-ChildItem -Path "${{ github.workspace }}/deps" -Recurse | Select-Object FullName
+
       - name: Configure CMake
         run: |
           cmake -S plugin -B build_x64 `
