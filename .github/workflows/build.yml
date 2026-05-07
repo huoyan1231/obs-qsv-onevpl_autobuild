@@ -62,14 +62,11 @@ jobs:
       - name: Package Plugin
         run: |
           $PackageDir = "${{ github.workspace }}/package"
-          $Rundir = "${{ github.workspace }}/obs-studio/build_x64/rundir/RelWithDebInfo"
+          $BuildDir = "${{ github.workspace }}/obs-studio/build_x64/plugins/${{ env.PLUGIN_NAME }}/obs-qsvonevpl/RelWithDebInfo"
           New-Item -ItemType Directory -Path "$PackageDir/obs-plugins/64bit" -Force
           New-Item -ItemType Directory -Path "$PackageDir/data/obs-plugins/${{ env.PLUGIN_NAME }}" -Force
-          Copy-Item "$Rundir/obs-plugins/64bit/obs-qsvonevpl.dll" "$PackageDir/obs-plugins/64bit/" -ErrorAction SilentlyContinue
-          Copy-Item "$Rundir/obs-plugins/64bit/obs-qsvonevpl.pdb" "$PackageDir/obs-plugins/64bit/" -ErrorAction SilentlyContinue
-          if (Test-Path "$Rundir/data/obs-plugins/${{ env.PLUGIN_NAME }}") {
-            Copy-Item "$Rundir/data/obs-plugins/${{ env.PLUGIN_NAME }}/*" "$PackageDir/data/obs-plugins/${{ env.PLUGIN_NAME }}/" -Recurse
-          }
+          Copy-Item "$BuildDir/obs-qsvonevpl.dll" "$PackageDir/obs-plugins/64bit/"
+          Copy-Item "$BuildDir/obs-qsvonevpl.pdb" "$PackageDir/obs-plugins/64bit/"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -94,6 +91,7 @@ jobs:
             obs-studio \
             libvpl-dev \
             libsimde-dev \
+            libx11-dev \
             cmake \
             ninja-build \
             pkg-config \
