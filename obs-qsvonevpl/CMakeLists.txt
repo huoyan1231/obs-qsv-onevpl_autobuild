@@ -50,6 +50,7 @@ target_compile_options(obs-qsvonevpl PRIVATE "/MP")
 target_compile_options(obs-qsvonevpl PRIVATE "/Qpar")
 target_compile_options(obs-qsvonevpl PRIVATE "/GL")
 target_compile_options(obs-qsvonevpl PRIVATE "/Gy")
+target_link_options(obs-qsvonevpl PRIVATE "/LTCG" "/INCREMENTAL:NO")
 endif()
 
 # Windows

@@ -93,6 +93,7 @@ jobs:
           sudo apt-get install -y \
             obs-studio \
             libvpl-dev \
+            libsimde-dev \
             cmake \
             ninja-build \
             pkg-config \
