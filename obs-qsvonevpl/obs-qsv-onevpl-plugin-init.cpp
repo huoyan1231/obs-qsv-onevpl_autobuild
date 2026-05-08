@@ -241,19 +241,21 @@ static bool ParamsVisibilityModifier(obs_properties_t *Properties,
     obs_data_set_string(Settings, "lookahead", "HQ");
   }
 
-  if (bVisible) {
-    bool bVisible_lookahead_hq = std::strcmp(lookahead, "HQ") == 0 || bIsLAICQ;
-    bool bVisible_lookahead_lp = std::strcmp(lookahead, "LP") == 0;
-    Prop = obs_properties_get(Properties, "lookahead_ds");
-    obs_property_set_visible(
-        Prop, ((bVisible_lookahead_hq || bVisible_lookahead_lp) && bVisible));
+  bool bVisible_lookahead_hq = std::strcmp(lookahead, "HQ") == 0 || bIsLAICQ;
+  bool bVisible_lookahead_lp = std::strcmp(lookahead, "LP") == 0;
 
-    Prop = obs_properties_get(Properties, "lookahead_latency");
-    obs_property_set_visible(Prop, (bVisible_lookahead_hq && bVisible));
+  Prop = obs_properties_get(Properties, "lookahead_ds");
+  obs_property_set_visible(
+      Prop, bVisible && (bVisible_lookahead_hq || bVisible_lookahead_lp));
 
-    if (bVisible_lookahead_lp) {
-      obs_data_set_string(Settings, "enctools", "OFF");
-    }
+  Prop = obs_properties_get(Properties, "lookahead_latency");
+  obs_property_set_visible(Prop, bVisible && bVisible_lookahead_hq);
+
+  Prop = obs_properties_get(Properties, "la_depth");
+  obs_property_set_visible(Prop, bVisible && bVisible_lookahead_hq);
+
+  if (bVisible_lookahead_lp) {
+    obs_data_set_string(Settings, "enctools", "OFF");
   }
 
   bVisible = bIsCBR || bIsVBR || bIsAVBR || bIsVCM || bIsQVBR || bIsICQ ||
@@ -581,6 +583,8 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
   Prop = obs_properties_add_list(Props, "lookahead_latency", TEXT_LA_LATENCY,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition_lookahead_latency);
+
+  obs_properties_add_int_slider(Props, "la_depth", TEXT_LA_DEPTH, 10, 100, 1);
 
   Prop = obs_properties_add_list(Props, "vpp", TEXT_VPP, OBS_COMBO_TYPE_LIST,
                                  OBS_COMBO_FORMAT_STRING);
