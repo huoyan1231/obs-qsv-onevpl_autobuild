@@ -506,7 +506,8 @@ mfxStatus QSVEncoder::SetEncoderParams(struct encoder_params *InputParams,
   QSVEncodeParams.mfx.CodecProfile =
       static_cast<mfxU16>(InputParams->CodecProfile);
   if (QSVEncodeParams.mfx.CodecId == MFX_CODEC_HEVC) {
-    QSVEncodeParams.mfx.CodecProfile |= InputParams->CodecProfileTier;
+    QSVEncodeParams.mfx.CodecProfile |=
+        (InputParams->CodecProfileTier << 8);
   }
 
   /*This is a multiplier to bypass the limitation of the 16 bit value of

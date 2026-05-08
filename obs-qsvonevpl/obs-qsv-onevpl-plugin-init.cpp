@@ -6,6 +6,8 @@
 #include "obs-qsv-onevpl-encoder.hpp"
 #endif
 
+enum { QSV_PLATFORM_TIGERLAKE = 8 };
+
 struct qsv_rate_control_info {
     const char *name;
     mfxU16 min_platform;
@@ -339,7 +341,21 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
     Prop =
         obs_properties_add_list(Props, "hevc_tier", TEXT_HEVC_TIER,
                                 OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
-    AddStrings(Prop, qsv_profile_tiers_hevc);
+
+    mfxU16 platformCode = QueryPlatformCodeName();
+    const char *const *tierEntry = qsv_profile_tiers_hevc;
+    while (*tierEntry) {
+      bool isHigh = std::strcmp(*tierEntry, "high") == 0;
+      bool showTier = true;
+      if (isHigh && platformCode != 0 &&
+          platformCode < QSV_PLATFORM_TIGERLAKE) {
+        showTier = false;
+      }
+      if (showTier) {
+        obs_property_list_add_string(Prop, *tierEntry, *tierEntry);
+      }
+      tierEntry++;
+    }
   }
 
   Prop = obs_properties_add_list(Props, "extbrc", TEXT_EXT_BRC,
@@ -888,7 +904,16 @@ static void GetEncoderParams(plugin_context *Context, obs_data_t *Settings) {
     if (std::strcmp(CodecProfileTierData, "main") == 0) {
       Context->EncoderParams.CodecProfileTier = MFX_TIER_HEVC_MAIN;
     } else {
-      Context->EncoderParams.CodecProfileTier = MFX_TIER_HEVC_HIGH;
+      mfxU16 platformCode = QueryPlatformCodeName();
+      bool highTierUnsupported = platformCode != 0 &&
+                                 platformCode < QSV_PLATFORM_TIGERLAKE;
+      if (highTierUnsupported) {
+        info("\tHEVC High Tier not supported on this GPU, "
+             "falling back to Main Tier");
+        Context->EncoderParams.CodecProfileTier = MFX_TIER_HEVC_MAIN;
+      } else {
+        Context->EncoderParams.CodecProfileTier = MFX_TIER_HEVC_HIGH;
+      }
     }
     break;
   case QSV_CODEC_AV1:
