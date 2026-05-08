@@ -78,6 +78,19 @@ extern obs_encoder_info HEVCTextureEncoderInfo;
 
 
 bool obs_module_load([[maybe_unused]] void) {
+  blog(LOG_INFO, "[QSV encoder: 'libvpl'] === Locale Debug ===");
+  blog(LOG_INFO, "[QSV encoder: 'libvpl'] obs_module_text('TargetUsage')  = '%s'",
+       obs_module_text("TargetUsage"));
+  blog(LOG_INFO, "[QSV encoder: 'libvpl'] obs_module_text('RateControl')   = '%s'",
+       obs_module_text("RateControl"));
+  blog(LOG_INFO, "[QSV encoder: 'libvpl'] obs_module_text('Profile')       = '%s'",
+       obs_module_text("Profile"));
+  blog(LOG_INFO, "[QSV encoder: 'libvpl'] obs_module_text('Bitrate')       = '%s'",
+       obs_module_text("Bitrate"));
+  blog(LOG_INFO, "[QSV encoder: 'libvpl'] obs_module_text('8bitUnsupportedHdr') = '%s'",
+       obs_module_text("8bitUnsupportedHdr"));
+  blog(LOG_INFO, "[QSV encoder: 'libvpl'] === End Locale Debug ===");
+
   AdaptersCount = MAX_ADAPTERS;
   GetAdaptersInfo(AdaptersInfo, &AdaptersCount);
 
