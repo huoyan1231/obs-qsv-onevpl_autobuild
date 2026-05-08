@@ -176,10 +176,27 @@ static void SetDefaultEncoderParams(obs_data_t *Settings,
   obs_data_set_default_int(Settings, "gpu_number", 0);
 }
 
+static inline const char *LocaleKey(const char *str) {
+  static char buf[128];
+  size_t i;
+  if (strcmp(str, "AUTO") == 0)
+    return "AUTO_";
+  for (i = 0; str[i] && i < sizeof(buf) - 1; i++) {
+    char c = str[i];
+    if (c == ' ' || c == '|' || c == '(' || c == ')' || c == '/')
+      buf[i] = '_';
+    else
+      buf[i] = c;
+  }
+  buf[i] = '\0';
+  return buf;
+}
+
 static inline void AddStrings(obs_property_t *List,
                               const char *const *Strings) {
   while (*Strings) {
-    obs_property_list_add_string(List, obs_module_text(*Strings), *Strings);
+    obs_property_list_add_string(List, obs_module_text(LocaleKey(*Strings)),
+                                *Strings);
     Strings++;
   }
 }
