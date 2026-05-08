@@ -139,6 +139,10 @@ static void SetDefaultEncoderParams(obs_data_t *Settings,
   obs_data_set_default_string(Settings, "scaling_mode", "OFF");
   obs_data_set_default_string(Settings, "perc_enc_prefilter", "OFF");
 
+  obs_data_set_default_string(Settings, "scenario_info", "AUTO");
+  obs_data_set_default_string(Settings, "transform_skip", "OFF");
+  obs_data_set_default_string(Settings, "fade_detection", "ON");
+
   obs_data_set_default_int(Settings, "gpu_number", 0);
 }
 
@@ -724,6 +728,34 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
           "touch the values \n"
           "of this parameter if you are not sure what you are doing."));
 
+  Prop = obs_properties_add_list(Props, "scenario_info", TEXT_SCENARIO_INFO,
+                                 OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
+  AddStrings(Prop, qsv_params_condition_scenario_info);
+  obs_property_set_long_description(
+      Prop,
+      obs_module_text(
+          "Specify the encoding scenario to optimize encoder settings \n"
+          "for the intended application."));
+
+  Prop = obs_properties_add_list(Props, "transform_skip", TEXT_TRANSFORM_SKIP,
+                                 OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
+  AddStrings(Prop, qsv_params_condition);
+  obs_property_set_long_description(
+      Prop,
+      obs_module_text(
+          "Enable or disable transform skip. \n"
+          "When enabled, the encoder may skip the transform step \n"
+          "for certain blocks to improve compression efficiency."));
+
+  Prop = obs_properties_add_list(Props, "fade_detection", TEXT_FADE_DETECTION,
+                                 OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
+  AddStrings(Prop, qsv_params_condition);
+  obs_property_set_long_description(
+      Prop,
+      obs_module_text(
+          "Detect fade scenes and adjust encoding parameters. \n"
+          "AUTO lets the encoder decide when to enable fade detection."));
+
   Prop = obs_properties_add_int(Props, "gpu_number", TEXT_GPU_NUMBER, 0, 4, 1);
   obs_property_set_long_description(
       Prop, obs_module_text(
@@ -797,6 +829,12 @@ static void GetEncoderParams(plugin_context *Context, obs_data_t *Settings) {
       obs_data_get_string(Settings, "mv_overpic_boundaries");
   const char *SAOData = obs_data_get_string(Settings, "hevc_sao");
   const char *GPBData = obs_data_get_string(Settings, "hevc_gpb");
+  const char *ScenarioInfoData =
+      obs_data_get_string(Settings, "scenario_info");
+  const char *TransformSkipData =
+      obs_data_get_string(Settings, "transform_skip");
+  const char *FadeDetectionData =
+      obs_data_get_string(Settings, "fade_detection");
   const char *TuneQualityData = obs_data_get_string(Settings, "tune_quality");
   const char *PPyramidData = obs_data_get_string(Settings, "p_pyramid");
   const char *ExtBRCData = obs_data_get_string(Settings, "extbrc");
@@ -1174,6 +1212,28 @@ static void GetEncoderParams(plugin_context *Context, obs_data_t *Settings) {
     Context->EncoderParams.GPB = 1;
   } else if (std::strcmp(GPBData, "OFF") == 0) {
     Context->EncoderParams.GPB = 0;
+  }
+
+  if (std::strcmp(ScenarioInfoData, "ARCHIVE") == 0) {
+    Context->EncoderParams.ScenarioInfo = 1;
+  } else if (std::strcmp(ScenarioInfoData, "LIVE") == 0) {
+    Context->EncoderParams.ScenarioInfo = 2;
+  } else if (std::strcmp(ScenarioInfoData, "REMOTE_GAMING") == 0) {
+    Context->EncoderParams.ScenarioInfo = 3;
+  } else if (std::strcmp(ScenarioInfoData, "GAME_STREAMING") == 0) {
+    Context->EncoderParams.ScenarioInfo = 4;
+  }
+
+  if (std::strcmp(TransformSkipData, "ON") == 0) {
+    Context->EncoderParams.TransformSkip = 1;
+  } else if (std::strcmp(TransformSkipData, "OFF") == 0) {
+    Context->EncoderParams.TransformSkip = 0;
+  }
+
+  if (std::strcmp(FadeDetectionData, "ON") == 0) {
+    Context->EncoderParams.FadeDetection = 1;
+  } else if (std::strcmp(FadeDetectionData, "OFF") == 0) {
+    Context->EncoderParams.FadeDetection = 0;
   }
 
   if (std::strcmp(RateControlData, "CBR") == 0) {

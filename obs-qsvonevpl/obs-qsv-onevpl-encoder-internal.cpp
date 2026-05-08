@@ -877,9 +877,9 @@ mfxStatus QSVEncoder::SetEncoderParams(struct encoder_params *InputParams,
     CO3Params->TargetBitDepthChroma = InputParams->VideoFormat10bit ? 10 : 8;
     CO3Params->TargetChromaFormatPlus1 =
         static_cast<mfxU16>(QSVEncodeParams.mfx.FrameInfo.ChromaFormat + 1);
-    CO3Params->TransformSkip = MFX_CODINGOPTION_OFF;
+    CO3Params->TransformSkip = GetCodingOpt(InputParams->TransformSkip);
     CO3Params->EnableMBForceIntra = MFX_CODINGOPTION_ON;
-    CO3Params->FadeDetection = MFX_CODINGOPTION_ON;
+    CO3Params->FadeDetection = GetCodingOpt(InputParams->FadeDetection);
 
     // if (QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_CBR ||
     //     QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_VBR) {
@@ -955,7 +955,27 @@ mfxStatus QSVEncoder::SetEncoderParams(struct encoder_params *InputParams,
 
     CO3Params->ContentInfo = MFX_CONTENT_NOISY_VIDEO;
 
-    if (InputParams->Lookahead == true && InputParams->LADepth < 9) {
+    if (InputParams->ScenarioInfo.has_value() &&
+        InputParams->ScenarioInfo.value() != 0) {
+      switch (InputParams->ScenarioInfo.value()) {
+      case 1:
+        CO3Params->ScenarioInfo = MFX_SCENARIO_ARCHIVE;
+        info("\tScenario: ARCHIVE");
+        break;
+      case 2:
+        CO3Params->ScenarioInfo = MFX_SCENARIO_LIVE;
+        info("\tScenario: LIVE");
+        break;
+      case 3:
+        CO3Params->ScenarioInfo = MFX_SCENARIO_REMOTE_GAMING;
+        info("\tScenario: REMOTE GAMING");
+        break;
+      case 4:
+        CO3Params->ScenarioInfo = MFX_SCENARIO_GAME_STREAMING;
+        info("\tScenario: GAME STREAMING");
+        break;
+      }
+    } else if (InputParams->Lookahead == true && InputParams->LADepth < 9) {
       CO3Params->ScenarioInfo = MFX_SCENARIO_REMOTE_GAMING;
       info("\tScenario: REMOTE GAMING");
     } else if ((QSVEncodeParams.mfx.CodecId == MFX_CODEC_AVC ||

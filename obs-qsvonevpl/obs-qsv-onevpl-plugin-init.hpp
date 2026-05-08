@@ -87,6 +87,13 @@ static inline const char *TEXT_EXT_BRC = obs_module_text("ExtBRC");
 static inline const char *TEXT_ENC_TOOLS = obs_module_text("EncTools");
 static inline const char *TEXT_LOW_POWER = obs_module_text("LowPower mode");
 
+static inline const char *TEXT_SCENARIO_INFO =
+    obs_module_text("ScenarioInfo");
+static inline const char *TEXT_TRANSFORM_SKIP =
+    obs_module_text("TransformSkip");
+static inline const char *TEXT_FADE_DETECTION =
+    obs_module_text("FadeDetection");
+
 static inline const char *TEXT_VPP =
     obs_module_text("Video processing filters");
 static inline const char *TEXT_VPP_MODE =
@@ -184,6 +191,9 @@ static const char *const qsv_params_condition_trellis[] = {
 
 static const char *const qsv_params_condition_hevc_sao[] = {
     "AUTO", "DISABLE", "LUMA", "CHROMA", "ALL", 0};
+
+static const char *const qsv_params_condition_scenario_info[] = {
+    "AUTO", "ARCHIVE", "LIVE", "REMOTE_GAMING", "GAME_STREAMING", 0};
 
 static const char *const qsv_params_condition_tune_quality[] = {
     "DEFAULT", "PSNR", "SSIM", "MS SSIM", "VMAF", "PERCEPTUAL", "OFF", 0};
