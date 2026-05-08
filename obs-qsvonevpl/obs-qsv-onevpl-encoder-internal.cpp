@@ -595,9 +595,20 @@ mfxStatus QSVEncoder::SetEncoderParams(struct encoder_params *InputParams,
          QSVEncodeParams.mfx.BufferSizeInKB * 100);
     break;
   case MFX_RATECONTROL_VCM:
-    QSVEncodeParams.mfx.QPI = static_cast<mfxU16>(InputParams->QPI);
-    QSVEncodeParams.mfx.QPB = static_cast<mfxU16>(InputParams->QPB);
-    QSVEncodeParams.mfx.QPP = static_cast<mfxU16>(InputParams->QPP);
+    QSVEncodeParams.mfx.TargetKbps =
+        static_cast<mfxU16>(InputParams->TargetBitRate);
+    QSVEncodeParams.mfx.MaxKbps = static_cast<mfxU16>(InputParams->MaxBitRate);
+    QSVEncodeParams.mfx.BufferSizeInKB =
+        static_cast<mfxU16>((QSVEncodeParams.mfx.TargetKbps / 8) * 2);
+    if (InputParams->CustomBufferSize == true && InputParams->BufferSize > 0) {
+      QSVEncodeParams.mfx.BufferSizeInKB =
+          static_cast<mfxU16>(InputParams->BufferSize);
+      info("\tCustomBufferSize set: ON");
+    }
+    QSVEncodeParams.mfx.InitialDelayInKB =
+        static_cast<mfxU16>(QSVEncodeParams.mfx.BufferSizeInKB / 2);
+    info("\tBufferSize set to: %d KB",
+         QSVEncodeParams.mfx.BufferSizeInKB * 100);
     break;
   case MFX_RATECONTROL_QVBR:
     QSVEncodeParams.mfx.TargetKbps =
@@ -959,8 +970,7 @@ mfxStatus QSVEncoder::SetEncoderParams(struct encoder_params *InputParams,
       info("\tScenario: REMOTE GAMING");
     }
 
-    if (QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_CQP ||
-        QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_VCM) {
+    if (QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_CQP) {
       CO3Params->EnableMBQP = MFX_CODINGOPTION_ON;
     }
 
@@ -1360,6 +1370,7 @@ bool QSVEncoder::UpdateParams(struct encoder_params *InputParams) {
     }
     break;
   case MFX_RATECONTROL_VBR:
+  case MFX_RATECONTROL_VCM:
   case MFX_RATECONTROL_QVBR:
     if (QSVResetParams.mfx.TargetKbps != InputParams->TargetBitRate) {
       QSVResetParams.mfx.TargetKbps =
@@ -1376,7 +1387,6 @@ bool QSVEncoder::UpdateParams(struct encoder_params *InputParams) {
     }
     break;
   case MFX_RATECONTROL_CQP:
-  case MFX_RATECONTROL_VCM:
     if (QSVResetParams.mfx.QPI != InputParams->QPI) {
       QSVResetParams.mfx.QPI = static_cast<mfxU16>(InputParams->QPI);
       QSVResetParams.mfx.QPB = static_cast<mfxU16>(InputParams->QPB);

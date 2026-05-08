@@ -164,15 +164,15 @@ static bool ParamsVisibilityModifier(obs_properties_t *Properties,
   bool bIsLAICQ = std::strcmp(rate_control, "LA_ICQ") == 0;
   bool bIsQVBR = std::strcmp(rate_control, "QVBR") == 0;
 
-  bool bVisible = bIsVBR || bIsQVBR;
+  bool bVisible = bIsVBR || bIsVCM || bIsQVBR;
   Prop = obs_properties_get(Properties, "max_bitrate");
   obs_property_set_visible(Prop, bVisible);
 
-  bVisible = bIsCQP || bIsICQ || bIsLAICQ || bIsVCM;
+  bVisible = bIsCQP || bIsICQ || bIsLAICQ;
   Prop = obs_properties_get(Properties, "bitrate");
   obs_property_set_visible(Prop, !bVisible);
 
-  bVisible = bIsCQP || bIsVCM;
+  bVisible = bIsCQP;
   Prop = obs_properties_get(Properties, "qpi");
   if (Prop)
     obs_property_set_visible(Prop, bVisible);
@@ -190,7 +190,7 @@ static bool ParamsVisibilityModifier(obs_properties_t *Properties,
   Prop = obs_properties_get(Properties, "icq_quality");
   obs_property_set_visible(Prop, bVisible);
 
-  bVisible = (bIsCBR || bIsVBR || bIsAVBR || bIsQVBR) && !bIsLAICQ;
+  bVisible = (bIsCBR || bIsVBR || bIsAVBR || bIsVCM || bIsQVBR) && !bIsLAICQ;
   Prop = obs_properties_get(Properties, "enctools");
   obs_property_set_visible(Prop, bVisible);
   Prop = obs_properties_get(Properties, "extbrc");
@@ -221,7 +221,8 @@ static bool ParamsVisibilityModifier(obs_properties_t *Properties,
     }
   }
 
-  bVisible = bIsCBR || bIsVBR || bIsAVBR || bIsQVBR || bIsICQ || bIsLAICQ;
+  bVisible = bIsCBR || bIsVBR || bIsAVBR || bIsVCM || bIsQVBR || bIsICQ ||
+             bIsLAICQ;
   Prop = obs_properties_get(Properties, "mbbrc");
   obs_property_set_visible(Prop, bVisible);
   if (!bVisible) {
@@ -1316,11 +1317,11 @@ static void GetEncoderParams(plugin_context *Context, obs_data_t *Settings) {
   info("\tRate control: %s\n", RateControlData);
 
   if (Context->EncoderParams.RateControl != MFX_RATECONTROL_ICQ &&
-      Context->EncoderParams.RateControl != MFX_RATECONTROL_CQP &&
-      Context->EncoderParams.RateControl != MFX_RATECONTROL_VCM)
+      Context->EncoderParams.RateControl != MFX_RATECONTROL_CQP)
     info("\tTarget bitrate: %d", Context->EncoderParams.TargetBitRate * 100);
 
   if (Context->EncoderParams.RateControl == MFX_RATECONTROL_VBR ||
+      Context->EncoderParams.RateControl == MFX_RATECONTROL_VCM ||
       Context->EncoderParams.RateControl == MFX_RATECONTROL_QVBR)
     info("\tMax bitrate: %d", Context->EncoderParams.MaxBitRate * 100);
 
@@ -1328,8 +1329,7 @@ static void GetEncoderParams(plugin_context *Context, obs_data_t *Settings) {
       std::strcmp(RateControlData, "ICQ") == 0)
     info("\tICQ Quality: %d", Context->EncoderParams.ICQQuality);
 
-  if (Context->EncoderParams.RateControl == MFX_RATECONTROL_CQP ||
-      Context->EncoderParams.RateControl == MFX_RATECONTROL_VCM)
+  if (Context->EncoderParams.RateControl == MFX_RATECONTROL_CQP)
     info("\tCQP: %d", ActualCQPData);
 
   info("\tFPS numerator: %d", VOI->fps_num);
