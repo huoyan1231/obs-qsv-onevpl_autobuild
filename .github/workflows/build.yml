@@ -81,9 +81,7 @@ jobs:
 
       - name: Configure CMake
         run: |
-          if (Test-Path "build_x64/CMakeCache.txt") {
-            Remove-Item -Force "build_x64/CMakeCache.txt"
-          }
+          Get-ChildItem -Path "." -Filter "CMakeCache.txt" -Recurse -Depth 2 | Remove-Item -Force
           cmake --preset windows-x64 -DMEDIASDK_INCLUDE_DIR="${{ github.workspace }}/obs-studio/plugins/${{ env.PLUGIN_NAME }}/MediaSDK/api/include"
         working-directory: ${{ github.workspace }}/obs-studio
 
