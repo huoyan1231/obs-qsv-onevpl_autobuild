@@ -233,6 +233,17 @@ mfxStatus QSVEncoder::Init(encoder_params *InputParams, enum codec_enum Codec,
     Status = SetEncoderParams(InputParams, Codec);
     Status = QSVEncode->Init(&QSVEncodeParams);
 
+    if (Status != MFX_ERR_NONE) {
+      auto CO3Params = QSVEncodeParams.GetExtBuffer<mfxExtCodingOption3>();
+      if (CO3Params && CO3Params->ScenarioInfo != 0) {
+        warn("MFXVideoENCODE_Init failed with ScenarioInfo=%d, retrying without ScenarioInfo",
+             CO3Params->ScenarioInfo);
+        QSVEncode->Close();
+        CO3Params->ScenarioInfo = 0;
+        Status = QSVEncode->Init(&QSVEncodeParams);
+      }
+    }
+
     Status = InitTexturePool();
 
     Status = GetVideoParam(Codec);
@@ -689,7 +700,9 @@ mfxStatus QSVEncoder::SetEncoderParams(struct encoder_params *InputParams,
     // COParams->AUDelimiter = MFX_CODINGOPTION_OFF;
     COParams->MaxDecFrameBuffering = InputParams->NumRefFrame;
     COParams->ResetRefList = MFX_CODINGOPTION_ON;
-    COParams->FieldOutput = MFX_CODINGOPTION_ON;
+    COParams->FieldOutput = (InputParams->Lowpower == false)
+                                ? MFX_CODINGOPTION_OFF
+                                : MFX_CODINGOPTION_ON;
     COParams->IntraPredBlockSize = MFX_BLOCKSIZE_MIN_4X4;
     COParams->InterPredBlockSize = MFX_BLOCKSIZE_MIN_4X4;
     COParams->MVPrecision = MFX_MVPRECISION_QUARTERPEL;
