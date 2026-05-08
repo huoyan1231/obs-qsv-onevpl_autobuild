@@ -117,8 +117,14 @@ jobs:
           Copy-Item "$DebugDir/$ModuleName.pdb" "$DebugPackage/obs-plugins/64bit/"
           Copy-Item "$SourceDir/locale/*.ini" "$DebugPackage/data/obs-plugins/$ModuleName/locale/"
 
-      - name: Upload Artifacts
+      - name: Upload Release Artifacts
         uses: actions/upload-artifact@v5
         with:
-          name: ${{ env.PLUGIN_NAME }}-${{ github.sha }}-windows-x64
-          path: ${{ github.workspace }}/package/**/*
+          name: ${{ env.PLUGIN_NAME }}-${{ github.sha }}-windows-x64-Release
+          path: ${{ github.workspace }}/package/release/**/*
+
+      - name: Upload Debug Artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{ env.PLUGIN_NAME }}-${{ github.sha }}-windows-x64-Debug
+          path: ${{ github.workspace }}/package/debug/**/*
