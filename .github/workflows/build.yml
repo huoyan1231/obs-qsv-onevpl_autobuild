@@ -90,13 +90,14 @@ jobs:
       - name: Package Plugin
         run: |
           $PackageDir = "${{ github.workspace }}/package"
-          $BuildDir = "${{ github.workspace }}/obs-studio/build_x64/plugins/${{ env.PLUGIN_NAME }}/obs-qsvonevpl/RelWithDebInfo"
-          $SourceDir = "${{ github.workspace }}/obs-studio/plugins/${{ env.PLUGIN_NAME }}/obs-qsvonevpl/data"
+          $ModuleName = "obs-qsvonevpl"
+          $BuildDir = "${{ github.workspace }}/obs-studio/build_x64/plugins/${{ env.PLUGIN_NAME }}/$ModuleName/RelWithDebInfo"
+          $SourceDir = "${{ github.workspace }}/obs-studio/plugins/${{ env.PLUGIN_NAME }}/$ModuleName/data"
           New-Item -ItemType Directory -Path "$PackageDir/obs-plugins/64bit" -Force
-          New-Item -ItemType Directory -Path "$PackageDir/data/obs-plugins/${{ env.PLUGIN_NAME }}/locale" -Force
-          Copy-Item "$BuildDir/obs-qsvonevpl.dll" "$PackageDir/obs-plugins/64bit/"
-          Copy-Item "$BuildDir/obs-qsvonevpl.pdb" "$PackageDir/obs-plugins/64bit/"
-          Copy-Item "$SourceDir/locale/*.ini" "$PackageDir/data/obs-plugins/${{ env.PLUGIN_NAME }}/locale/"
+          New-Item -ItemType Directory -Path "$PackageDir/data/obs-plugins/$ModuleName/locale" -Force
+          Copy-Item "$BuildDir/$ModuleName.dll" "$PackageDir/obs-plugins/64bit/"
+          Copy-Item "$BuildDir/$ModuleName.pdb" "$PackageDir/obs-plugins/64bit/"
+          Copy-Item "$SourceDir/locale/*.ini" "$PackageDir/data/obs-plugins/$ModuleName/locale/"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
