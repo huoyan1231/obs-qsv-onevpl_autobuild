@@ -78,23 +78,6 @@ extern obs_encoder_info HEVCTextureEncoderInfo;
 
 
 bool obs_module_load([[maybe_unused]] void) {
-  // Debug: Log locale information
-  const char *locale_path = obs_get_locale_path();
-  const char *current_locale = obs_get_locale();
-  info("=== Locale Debug Info ===");
-  info("OBS locale path: %s", locale_path ? locale_path : "NULL");
-  info("Current OBS locale: %s", current_locale ? current_locale : "NULL");
-  info("Module locale name: obs-qsvonevpl");
-  info("Default locale: en-US");
-  
-  // Try to get plugin-specific locale path
-  char plugin_locale_path[512];
-  snprintf(plugin_locale_path, sizeof(plugin_locale_path), 
-           "%s/obs-plugins/obs-qsvonevpl/locale", 
-           obs_get_module_config_path(obs_get_module("obs-qsvonevpl")));
-  info("Expected plugin locale path: %s", plugin_locale_path);
-  info("=========================");
-
   AdaptersCount = MAX_ADAPTERS;
   GetAdaptersInfo(AdaptersInfo, &AdaptersCount);
 
