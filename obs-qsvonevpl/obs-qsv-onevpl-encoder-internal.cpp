@@ -907,9 +907,6 @@ mfxStatus QSVEncoder::SetEncoderParams(struct encoder_params *InputParams,
     CO3Params->FadeDetection = GetCodingOpt(InputParams->FadeDetection);
     info("\tFadeDetection set: %s",
          GetCodingOptStatus(CO3Params->FadeDetection).c_str());
-    CO3Params->SceneChange = GetCodingOpt(InputParams->SceneChange);
-    info("\tSceneChange set: %s",
-         GetCodingOptStatus(CO3Params->SceneChange).c_str());
 
     // if (QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_CBR ||
     //     QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_VBR) {

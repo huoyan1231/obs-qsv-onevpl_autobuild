@@ -35,6 +35,8 @@ static const struct qsv_feature_info qsv_feature_info_list[] = {
     {"transform_skip", QSV_PLATFORM_TIGERLAKE},
     {nullptr, 0}};
 
+static mfxU16 QueryPlatformCodeName();
+
 static bool IsFeatureSupported(const char *PropertyName) {
     mfxU16 platformCode = QueryPlatformCodeName();
     if (platformCode == 0) {
@@ -169,7 +171,6 @@ static void SetDefaultEncoderParams(obs_data_t *Settings,
   obs_data_set_default_string(Settings, "content_info", "AUTO");
   obs_data_set_default_string(Settings, "transform_skip", "OFF");
   obs_data_set_default_string(Settings, "fade_detection", "ON");
-  obs_data_set_default_string(Settings, "scene_change", "ON");
   obs_data_set_default_string(Settings, "bitrate_limit", "ON");
 
   obs_data_set_default_int(Settings, "gpu_number", 0);
@@ -704,12 +705,6 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
   obs_property_set_long_description(
       Prop, TEXT_FADE_DETECTION_DESC);
 
-  Prop = obs_properties_add_list(Props, "scene_change", TEXT_SCENE_CHANGE,
-                                 OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
-  AddStrings(Prop, qsv_params_condition);
-  obs_property_set_long_description(
-      Prop, TEXT_SCENE_CHANGE_DESC);
-
   Prop = obs_properties_add_list(Props, "bitrate_limit", TEXT_BITRATE_LIMIT,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition);
@@ -794,8 +789,6 @@ static void GetEncoderParams(plugin_context *Context, obs_data_t *Settings) {
       obs_data_get_string(Settings, "transform_skip");
   const char *FadeDetectionData =
       obs_data_get_string(Settings, "fade_detection");
-  const char *SceneChangeData =
-      obs_data_get_string(Settings, "scene_change");
   const char *BitrateLimitData =
       obs_data_get_string(Settings, "bitrate_limit");
   const char *TuneQualityData = obs_data_get_string(Settings, "tune_quality");
@@ -1217,12 +1210,6 @@ static void GetEncoderParams(plugin_context *Context, obs_data_t *Settings) {
     Context->EncoderParams.FadeDetection = 1;
   } else if (std::strcmp(FadeDetectionData, "OFF") == 0) {
     Context->EncoderParams.FadeDetection = 0;
-  }
-
-  if (std::strcmp(SceneChangeData, "ON") == 0) {
-    Context->EncoderParams.SceneChange = 1;
-  } else if (std::strcmp(SceneChangeData, "OFF") == 0) {
-    Context->EncoderParams.SceneChange = 0;
   }
 
   if (std::strcmp(BitrateLimitData, "ON") == 0) {

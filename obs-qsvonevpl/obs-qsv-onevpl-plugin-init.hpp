@@ -95,8 +95,6 @@ static inline const char *TEXT_TRANSFORM_SKIP =
     obs_module_text("TransformSkip");
 static inline const char *TEXT_FADE_DETECTION =
     obs_module_text("FadeDetection");
-static inline const char *TEXT_SCENE_CHANGE =
-    obs_module_text("SceneChange");
 static inline const char *TEXT_BITRATE_LIMIT =
     obs_module_text("BitrateLimit");
 
@@ -179,8 +177,6 @@ static inline const char *TEXT_TRANSFORM_SKIP_DESC =
     obs_module_text("TransformSkipDesc");
 static inline const char *TEXT_FADE_DETECTION_DESC =
     obs_module_text("FadeDetectionDesc");
-static inline const char *TEXT_SCENE_CHANGE_DESC =
-    obs_module_text("SceneChangeDesc");
 static inline const char *TEXT_BITRATE_LIMIT_DESC =
     obs_module_text("BitrateLimitDesc");
 
