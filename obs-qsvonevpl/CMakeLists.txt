@@ -43,14 +43,20 @@ target_compile_definitions(
 target_compile_features(obs-qsvonevpl PRIVATE cxx_std_23)
 
 if(WIN32)
-target_compile_options(obs-qsvonevpl PRIVATE "/O2")  
-target_compile_options(obs-qsvonevpl PRIVATE "/Ot")
-target_compile_options(obs-qsvonevpl PRIVATE "/Oi")
-target_compile_options(obs-qsvonevpl PRIVATE "/MP")
-target_compile_options(obs-qsvonevpl PRIVATE "/Qpar")
-target_compile_options(obs-qsvonevpl PRIVATE "/GL")
-target_compile_options(obs-qsvonevpl PRIVATE "/Gy")
-target_link_options(obs-qsvonevpl PRIVATE "/LTCG" "/INCREMENTAL:NO")
+target_compile_options(obs-qsvonevpl PRIVATE
+  $<$<CONFIG:Release>:/O2>
+  $<$<CONFIG:Release>:/Gw>
+  $<$<CONFIG:Release>:/Zc:inline>
+  $<$<CONFIG:Debug>:/Od>
+  /Oi
+  /MP
+  $<$<CONFIG:Release>:/GL>
+  $<$<CONFIG:Release>:/Gy>
+)
+target_link_options(obs-qsvonevpl PRIVATE
+  $<$<CONFIG:Release>:/LTCG>
+  /INCREMENTAL:NO
+)
 endif()
 
 # Install rules

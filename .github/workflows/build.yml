@@ -86,24 +86,39 @@ jobs:
           cmake --preset windows-x64 -DMEDIASDK_INCLUDE_DIR="${{ github.workspace }}/obs-studio/plugins/${{ env.PLUGIN_NAME }}/MediaSDK/api/include"
         working-directory: ${{ github.workspace }}/obs-studio
 
-      - name: Build (plugin only)
-        run: cmake --build --preset windows-x64 --config RelWithDebInfo --target obs-qsvonevpl
+      - name: Build Release
+        run: cmake --build --preset windows-x64 --config Release --target obs-qsvonevpl
+        working-directory: ${{ github.workspace }}/obs-studio
+
+      - name: Build Debug
+        run: cmake --build --preset windows-x64 --config Debug --target obs-qsvonevpl
         working-directory: ${{ github.workspace }}/obs-studio
 
       - name: Package Plugin
         run: |
-          $PackageDir = "${{ github.workspace }}/package"
           $ModuleName = "obs-qsvonevpl"
-          $BuildDir = "${{ github.workspace }}/obs-studio/build_x64/plugins/${{ env.PLUGIN_NAME }}/$ModuleName/RelWithDebInfo"
           $SourceDir = "${{ github.workspace }}/obs-studio/plugins/${{ env.PLUGIN_NAME }}/$ModuleName/data"
-          New-Item -ItemType Directory -Path "$PackageDir/obs-plugins/64bit" -Force
-          New-Item -ItemType Directory -Path "$PackageDir/data/obs-plugins/$ModuleName/locale" -Force
-          Copy-Item "$BuildDir/$ModuleName.dll" "$PackageDir/obs-plugins/64bit/"
-          Copy-Item "$BuildDir/$ModuleName.pdb" "$PackageDir/obs-plugins/64bit/"
-          Copy-Item "$SourceDir/locale/*.ini" "$PackageDir/data/obs-plugins/$ModuleName/locale/"
+
+          # Release
+          $ReleaseDir = "${{ github.workspace }}/obs-studio/build_x64/plugins/${{ env.PLUGIN_NAME }}/$ModuleName/Release"
+          $ReleasePackage = "${{ github.workspace }}/package/release"
+          New-Item -ItemType Directory -Path "$ReleasePackage/obs-plugins/64bit" -Force
+          New-Item -ItemType Directory -Path "$ReleasePackage/data/obs-plugins/$ModuleName/locale" -Force
+          Copy-Item "$ReleaseDir/$ModuleName.dll" "$ReleasePackage/obs-plugins/64bit/"
+          Copy-Item "$ReleaseDir/$ModuleName.pdb" "$ReleasePackage/obs-plugins/64bit/"
+          Copy-Item "$SourceDir/locale/*.ini" "$ReleasePackage/data/obs-plugins/$ModuleName/locale/"
+
+          # Debug
+          $DebugDir = "${{ github.workspace }}/obs-studio/build_x64/plugins/${{ env.PLUGIN_NAME }}/$ModuleName/Debug"
+          $DebugPackage = "${{ github.workspace }}/package/debug"
+          New-Item -ItemType Directory -Path "$DebugPackage/obs-plugins/64bit" -Force
+          New-Item -ItemType Directory -Path "$DebugPackage/data/obs-plugins/$ModuleName/locale" -Force
+          Copy-Item "$DebugDir/$ModuleName.dll" "$DebugPackage/obs-plugins/64bit/"
+          Copy-Item "$DebugDir/$ModuleName.pdb" "$DebugPackage/obs-plugins/64bit/"
+          Copy-Item "$SourceDir/locale/*.ini" "$DebugPackage/data/obs-plugins/$ModuleName/locale/"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v5
         with:
           name: ${{ env.PLUGIN_NAME }}-${{ github.sha }}-windows-x64
-          path: ${{ github.workspace }}/package/*
+          path: ${{ github.workspace }}/package/**/*
