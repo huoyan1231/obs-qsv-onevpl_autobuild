@@ -80,7 +80,11 @@ jobs:
         working-directory: ${{ github.workspace }}/obs-studio
 
       - name: Configure CMake
-        run: cmake --preset windows-x64 -DMEDIASDK_INCLUDE_DIR="${{ github.workspace }}/obs-studio/plugins/${{ env.PLUGIN_NAME }}/MediaSDK/api/include"
+        run: |
+          if (Test-Path "build_x64/CMakeCache.txt") {
+            Remove-Item -Force "build_x64/CMakeCache.txt"
+          }
+          cmake --preset windows-x64 -DMEDIASDK_INCLUDE_DIR="${{ github.workspace }}/obs-studio/plugins/${{ env.PLUGIN_NAME }}/MediaSDK/api/include"
         working-directory: ${{ github.workspace }}/obs-studio
 
       - name: Build (plugin only)
