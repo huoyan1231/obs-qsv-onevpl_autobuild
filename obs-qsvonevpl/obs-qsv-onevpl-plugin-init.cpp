@@ -24,6 +24,32 @@ static const struct qsv_rate_control_info qsv_rate_control_info_list[] = {
     {"QVBR", MFX_PLATFORM_DG2},
     {nullptr, 0}};
 
+struct qsv_feature_info {
+    const char *property_name;
+    mfxU16 min_platform;
+};
+
+static const struct qsv_feature_info qsv_feature_info_list[] = {
+    {"enc_tools", MFX_PLATFORM_DG2},
+    {"tune_quality", QSV_PLATFORM_TIGERLAKE},
+    {"transform_skip", QSV_PLATFORM_TIGERLAKE},
+    {nullptr, 0}};
+
+static bool IsFeatureSupported(const char *PropertyName) {
+    mfxU16 platformCode = QueryPlatformCodeName();
+    if (platformCode == 0) {
+        return true;
+    }
+    const struct qsv_feature_info *info = qsv_feature_info_list;
+    while (info->property_name) {
+        if (std::strcmp(info->property_name, PropertyName) == 0) {
+            return platformCode >= info->min_platform;
+        }
+        info++;
+    }
+    return true;
+}
+
 static mfxPlatform CachedQSVPlatform{};
 static bool CachedQSVPlatformValid = false;
 
@@ -140,8 +166,11 @@ static void SetDefaultEncoderParams(obs_data_t *Settings,
   obs_data_set_default_string(Settings, "perc_enc_prefilter", "OFF");
 
   obs_data_set_default_string(Settings, "scenario_info", "AUTO");
+  obs_data_set_default_string(Settings, "content_info", "AUTO");
   obs_data_set_default_string(Settings, "transform_skip", "OFF");
   obs_data_set_default_string(Settings, "fade_detection", "ON");
+  obs_data_set_default_string(Settings, "scene_change", "ON");
+  obs_data_set_default_string(Settings, "bitrate_limit", "ON");
 
   obs_data_set_default_int(Settings, "gpu_number", 0);
 }
@@ -196,6 +225,7 @@ static bool ParamsVisibilityModifier(obs_properties_t *Properties,
 
   bVisible = (bIsCBR || bIsVBR || bIsAVBR || bIsVCM || bIsQVBR) && !bIsLAICQ;
   Prop = obs_properties_get(Properties, "enctools");
+  if (bVisible) bVisible = IsFeatureSupported("enc_tools");
   obs_property_set_visible(Prop, bVisible);
   Prop = obs_properties_get(Properties, "extbrc");
   obs_property_set_visible(Prop, bVisible);
@@ -375,6 +405,7 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   obs_property_set_long_description(Prop, TEXT_ENC_TOOLS_DESC);
   AddStrings(Prop, qsv_params_condition);
+  obs_property_set_visible(Prop, IsFeatureSupported("enc_tools"));
   obs_property_set_modified_callback(Prop, ParamsVisibilityModifier);
   obs_property_set_modified_callback(Prop, ParamsVisibilityModifier);
 
@@ -385,6 +416,7 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
     AddStrings(Prop, qsv_params_condition_tune_quality);
     obs_property_set_long_description(
         Prop, TEXT_TUNE_QUALITY_DESC);
+    obs_property_set_visible(Prop, IsFeatureSupported("tune_quality"));
   }
 
   Prop = obs_properties_add_int(Props, "bitrate", TEXT_TARGET_BITRATE, 50,
@@ -653,17 +685,36 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
   obs_property_set_long_description(
       Prop, TEXT_SCENARIO_INFO_DESC);
 
+  Prop = obs_properties_add_list(Props, "content_info", TEXT_CONTENT_INFO,
+                                 OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
+  AddStrings(Prop, qsv_params_condition_content_info);
+  obs_property_set_long_description(
+      Prop, TEXT_CONTENT_INFO_DESC);
+
   Prop = obs_properties_add_list(Props, "transform_skip", TEXT_TRANSFORM_SKIP,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition);
   obs_property_set_long_description(
       Prop, TEXT_TRANSFORM_SKIP_DESC);
+  obs_property_set_visible(Prop, IsFeatureSupported("transform_skip"));
 
   Prop = obs_properties_add_list(Props, "fade_detection", TEXT_FADE_DETECTION,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition);
   obs_property_set_long_description(
       Prop, TEXT_FADE_DETECTION_DESC);
+
+  Prop = obs_properties_add_list(Props, "scene_change", TEXT_SCENE_CHANGE,
+                                 OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
+  AddStrings(Prop, qsv_params_condition);
+  obs_property_set_long_description(
+      Prop, TEXT_SCENE_CHANGE_DESC);
+
+  Prop = obs_properties_add_list(Props, "bitrate_limit", TEXT_BITRATE_LIMIT,
+                                 OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
+  AddStrings(Prop, qsv_params_condition);
+  obs_property_set_long_description(
+      Prop, TEXT_BITRATE_LIMIT_DESC);
 
   Prop = obs_properties_add_int(Props, "gpu_number", TEXT_GPU_NUMBER, 0, 4, 1);
   obs_property_set_long_description(
@@ -737,10 +788,16 @@ static void GetEncoderParams(plugin_context *Context, obs_data_t *Settings) {
   const char *GPBData = obs_data_get_string(Settings, "hevc_gpb");
   const char *ScenarioInfoData =
       obs_data_get_string(Settings, "scenario_info");
+  const char *ContentInfoData =
+      obs_data_get_string(Settings, "content_info");
   const char *TransformSkipData =
       obs_data_get_string(Settings, "transform_skip");
   const char *FadeDetectionData =
       obs_data_get_string(Settings, "fade_detection");
+  const char *SceneChangeData =
+      obs_data_get_string(Settings, "scene_change");
+  const char *BitrateLimitData =
+      obs_data_get_string(Settings, "bitrate_limit");
   const char *TuneQualityData = obs_data_get_string(Settings, "tune_quality");
   const char *PPyramidData = obs_data_get_string(Settings, "p_pyramid");
   const char *ExtBRCData = obs_data_get_string(Settings, "extbrc");
@@ -1130,6 +1187,26 @@ static void GetEncoderParams(plugin_context *Context, obs_data_t *Settings) {
     Context->EncoderParams.ScenarioInfo = 4;
   }
 
+  if (std::strcmp(ContentInfoData, "NOISY_VIDEO") == 0) {
+    Context->EncoderParams.ContentInfo = 2;
+  } else if (std::strcmp(ContentInfoData, "GAME") == 0) {
+    Context->EncoderParams.ContentInfo = 4;
+  } else if (std::strcmp(ContentInfoData, "CAMERA_SCENE") == 0) {
+    Context->EncoderParams.ContentInfo = 1;
+  } else if (std::strcmp(ContentInfoData, "CLEAN_CAMERA_SCENE") == 0) {
+    Context->EncoderParams.ContentInfo = 7;
+  } else if (std::strcmp(ContentInfoData, "ANIMATED_GRAPHICS") == 0) {
+    Context->EncoderParams.ContentInfo = 6;
+  } else if (std::strcmp(ContentInfoData, "COMPUTER_DISPLAY") == 0) {
+    Context->EncoderParams.ContentInfo = 10;
+  } else if (std::strcmp(ContentInfoData, "PROGRESSIVE_VIDEO") == 0) {
+    Context->EncoderParams.ContentInfo = 9;
+  } else if (std::strcmp(ContentInfoData, "STILL_IMAGE") == 0) {
+    Context->EncoderParams.ContentInfo = 8;
+  } else if (std::strcmp(ContentInfoData, "VIDEO_CONFERENCE") == 0) {
+    Context->EncoderParams.ContentInfo = 5;
+  }
+
   if (std::strcmp(TransformSkipData, "ON") == 0) {
     Context->EncoderParams.TransformSkip = 1;
   } else if (std::strcmp(TransformSkipData, "OFF") == 0) {
@@ -1140,6 +1217,18 @@ static void GetEncoderParams(plugin_context *Context, obs_data_t *Settings) {
     Context->EncoderParams.FadeDetection = 1;
   } else if (std::strcmp(FadeDetectionData, "OFF") == 0) {
     Context->EncoderParams.FadeDetection = 0;
+  }
+
+  if (std::strcmp(SceneChangeData, "ON") == 0) {
+    Context->EncoderParams.SceneChange = 1;
+  } else if (std::strcmp(SceneChangeData, "OFF") == 0) {
+    Context->EncoderParams.SceneChange = 0;
+  }
+
+  if (std::strcmp(BitrateLimitData, "ON") == 0) {
+    Context->EncoderParams.BitrateLimit = 1;
+  } else if (std::strcmp(BitrateLimitData, "OFF") == 0) {
+    Context->EncoderParams.BitrateLimit = 0;
   }
 
   if (std::strcmp(RateControlData, "CBR") == 0) {

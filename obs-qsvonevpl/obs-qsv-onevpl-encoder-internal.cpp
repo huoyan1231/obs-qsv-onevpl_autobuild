@@ -888,6 +888,10 @@ mfxStatus QSVEncoder::SetEncoderParams(struct encoder_params *InputParams,
     CO2Params->UseRawRef = GetCodingOpt(InputParams->RawRef);
     info("\tUseRawRef set: %s",
          GetCodingOptStatus(CO2Params->UseRawRef).c_str());
+
+    CO2Params->BitrateLimit = GetCodingOpt(InputParams->BitrateLimit);
+    info("\tBitrateLimit set: %s",
+         GetCodingOptStatus(CO2Params->BitrateLimit).c_str());
   }
 
   if (CO3Enabled == 1) {
@@ -901,6 +905,11 @@ mfxStatus QSVEncoder::SetEncoderParams(struct encoder_params *InputParams,
     CO3Params->TransformSkip = GetCodingOpt(InputParams->TransformSkip);
     CO3Params->EnableMBForceIntra = MFX_CODINGOPTION_ON;
     CO3Params->FadeDetection = GetCodingOpt(InputParams->FadeDetection);
+    info("\tFadeDetection set: %s",
+         GetCodingOptStatus(CO3Params->FadeDetection).c_str());
+    CO3Params->SceneChange = GetCodingOpt(InputParams->SceneChange);
+    info("\tSceneChange set: %s",
+         GetCodingOptStatus(CO3Params->SceneChange).c_str());
 
     // if (QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_CBR ||
     //     QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_VBR) {
@@ -974,7 +983,13 @@ mfxStatus QSVEncoder::SetEncoderParams(struct encoder_params *InputParams,
       CO3Params->IntRefCycleDist = 0;
     }
 
-    CO3Params->ContentInfo = MFX_CONTENT_NOISY_VIDEO;
+    if (InputParams->ContentInfo.has_value() &&
+        InputParams->ContentInfo.value() != 0) {
+      CO3Params->ContentInfo = static_cast<mfxU16>(InputParams->ContentInfo.value());
+      info("\tContentInfo set: %d", InputParams->ContentInfo.value());
+    } else {
+      CO3Params->ContentInfo = MFX_CONTENT_NOISY_VIDEO;
+    }
 
     if (InputParams->ScenarioInfo.has_value() &&
         InputParams->ScenarioInfo.value() != 0) {

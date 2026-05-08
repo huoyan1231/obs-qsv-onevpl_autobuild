@@ -89,10 +89,16 @@ static inline const char *TEXT_LOW_POWER = obs_module_text("LowPower mode");
 
 static inline const char *TEXT_SCENARIO_INFO =
     obs_module_text("ScenarioInfo");
+static inline const char *TEXT_CONTENT_INFO =
+    obs_module_text("ContentInfo");
 static inline const char *TEXT_TRANSFORM_SKIP =
     obs_module_text("TransformSkip");
 static inline const char *TEXT_FADE_DETECTION =
     obs_module_text("FadeDetection");
+static inline const char *TEXT_SCENE_CHANGE =
+    obs_module_text("SceneChange");
+static inline const char *TEXT_BITRATE_LIMIT =
+    obs_module_text("BitrateLimit");
 
 static inline const char *TEXT_VPP =
     obs_module_text("Video processing filters");
@@ -167,10 +173,16 @@ static inline const char *TEXT_NUM_REF_ACTIVE_BL1_DESC =
     obs_module_text("NumRefActiveBL1Desc");
 static inline const char *TEXT_SCENARIO_INFO_DESC =
     obs_module_text("ScenarioInfoDesc");
+static inline const char *TEXT_CONTENT_INFO_DESC =
+    obs_module_text("ContentInfoDesc");
 static inline const char *TEXT_TRANSFORM_SKIP_DESC =
     obs_module_text("TransformSkipDesc");
 static inline const char *TEXT_FADE_DETECTION_DESC =
     obs_module_text("FadeDetectionDesc");
+static inline const char *TEXT_SCENE_CHANGE_DESC =
+    obs_module_text("SceneChangeDesc");
+static inline const char *TEXT_BITRATE_LIMIT_DESC =
+    obs_module_text("BitrateLimitDesc");
 
 static inline const char *TEXT_EXT_BRC_DESC =
     obs_module_text("ExtBRCDesc");
@@ -253,6 +265,11 @@ static const char *const qsv_params_condition_hevc_sao[] = {
 
 static const char *const qsv_params_condition_scenario_info[] = {
     "AUTO", "ARCHIVE", "LIVE", "REMOTE_GAMING", "GAME_STREAMING", 0};
+
+static const char *const qsv_params_condition_content_info[] = {
+    "AUTO", "NOISY_VIDEO", "GAME", "CAMERA_SCENE",
+    "CLEAN_CAMERA_SCENE", "ANIMATED_GRAPHICS", "COMPUTER_DISPLAY",
+    "PROGRESSIVE_VIDEO", "STILL_IMAGE", "VIDEO_CONFERENCE", 0};
 
 static const char *const qsv_params_condition_tune_quality[] = {
     "DEFAULT", "PSNR", "SSIM", "MS SSIM", "VMAF", "PERCEPTUAL", "OFF", 0};

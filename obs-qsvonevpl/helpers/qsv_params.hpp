@@ -65,9 +65,13 @@ struct encoder_params {
   std::optional<bool> GlobalMotionBiasAdjustment;
   std::optional<bool> HRDConformance;
   std::optional<bool> LowDelayHRD;
+  std::optional<bool> SceneChange;
   std::optional<bool> FadeDetection;
   std::optional<bool> TransformSkip;
+  std::optional<bool> BitrateLimit;
   std::optional<int> ScenarioInfo;
+
+  std::optional<int> ContentInfo;
 
   bool Lookahead;
   bool LookaheadLP;
