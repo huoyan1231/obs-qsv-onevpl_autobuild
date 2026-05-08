@@ -792,6 +792,14 @@ mfxStatus QSVEncoder::SetEncoderParams(struct encoder_params *InputParams,
       }
     }
 
+    if ((QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_CBR ||
+         QSVEncodeParams.mfx.RateControlMethod == MFX_RATECONTROL_VBR) &&
+        QSVEncodeParams.mfx.LowPower == MFX_CODINGOPTION_OFF &&
+        InputParams->MBBRC == true) {
+      InputParams->MBBRC = false;
+      info("\tMBBRC set: OFF (CBR/VBR with Lowpower OFF)");
+    }
+
     CO2Params->MBBRC = GetCodingOpt(InputParams->MBBRC);
     info("\tMBBRC set: %s", GetCodingOptStatus(CO2Params->MBBRC).c_str());
 
