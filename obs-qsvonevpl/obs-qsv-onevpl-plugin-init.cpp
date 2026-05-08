@@ -179,7 +179,7 @@ static void SetDefaultEncoderParams(obs_data_t *Settings,
 static inline void AddStrings(obs_property_t *List,
                               const char *const *Strings) {
   while (*Strings) {
-    obs_property_list_add_string(List, *Strings, *Strings);
+    obs_property_list_add_string(List, obs_module_text(*Strings), *Strings);
     Strings++;
   }
 }
@@ -587,6 +587,11 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
   AddStrings(Prop, qsv_params_condition);
   obs_property_set_long_description(
       Prop, TEXT_VPP_DESC);
+  obs_property_set_modified_callback(Prop, ParamsVisibilityModifier);
+
+  Prop = obs_properties_add_list(Props, "vpp_mode", TEXT_VPP_MODE,
+                                 OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
+  AddStrings(Prop, qsv_params_condition_vpp);
   obs_property_set_modified_callback(Prop, ParamsVisibilityModifier);
 
   Prop = obs_properties_add_list(Props, "denoise_mode", TEXT_DENOISE_MODE,
