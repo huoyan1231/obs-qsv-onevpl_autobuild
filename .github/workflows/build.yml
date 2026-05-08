@@ -11,6 +11,7 @@ on:
 env:
   PLUGIN_NAME: obs-qsv-onevpl
   OBS_VERSION: 32.1.2
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   windows:
@@ -22,14 +23,14 @@ jobs:
     steps:
       - name: Cache OBS Studio Source
         id: cache-obs
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: obs-studio
           key: obs-studio-${{ env.OBS_VERSION }}-${{ runner.os }}
 
       - name: Checkout OBS Studio
         if: steps.cache-obs.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: obsproject/obs-studio
           ref: ${{ env.OBS_VERSION }}
@@ -38,13 +39,13 @@ jobs:
           submodules: recursive
 
       - name: Checkout Plugin
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: obs-studio/plugins/${{ env.PLUGIN_NAME }}
 
       - name: Cache oneVPL
         id: cache-onevpl
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: obs-studio/plugins/${{ env.PLUGIN_NAME }}/libvpl
           key: onevpl-${{ runner.os }}
@@ -57,7 +58,7 @@ jobs:
 
       - name: Cache Intel Media SDK Headers
         id: cache-mediasdk
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: obs-studio/plugins/${{ env.PLUGIN_NAME }}/MediaSDK
           key: mediasdk-${{ runner.os }}
@@ -102,7 +103,7 @@ jobs:
           Copy-Item "$SourceDir/locale/*.ini" "$PackageDir/data/obs-plugins/$ModuleName/locale/"
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ env.PLUGIN_NAME }}-${{ github.sha }}-windows-x64
           path: ${{ github.workspace }}/package/*
