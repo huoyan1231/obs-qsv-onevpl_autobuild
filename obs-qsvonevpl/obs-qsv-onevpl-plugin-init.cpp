@@ -336,6 +336,20 @@ static bool ParamsVisibilityModifier(obs_properties_t *Properties,
 }
 
 static obs_properties_t *GetParamProps(enum codec_enum Codec) {
+  // Debug: Test locale loading
+  static bool locale_debug_printed = false;
+  if (!locale_debug_printed) {
+    locale_debug_printed = true;
+    info("=== Locale Keys Test ===");
+    info("TargetUsage: %s", obs_module_text("TargetUsage"));
+    info("BitrateLimit: %s", obs_module_text("BitrateLimit"));
+    info("BitrateLimitDesc: %s", obs_module_text("BitrateLimitDesc"));
+    info("ContentInfo: %s", obs_module_text("ContentInfo"));
+    info("ContentInfoDesc: %s", obs_module_text("ContentInfoDesc"));
+    info("FadeDetection: %s", obs_module_text("FadeDetection"));
+    info("ScenarioInfo: %s", obs_module_text("ScenarioInfo"));
+    info("=======================");
+  }
 
   obs_properties_t *Props = obs_properties_create();
   obs_property_t *Prop;
