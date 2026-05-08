@@ -366,23 +366,14 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
   Prop = obs_properties_add_list(Props, "extbrc", TEXT_EXT_BRC,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   obs_property_set_long_description(
-      Prop, obs_module_text(
-                "Set this parameter to ON to enable external bitrate "
-                "\ncontrol. It can have a positive effect on the stability "
-                "\nof the bitrate and the quality of the output image"));
+      Prop, TEXT_EXT_BRC_DESC);
   AddStrings(Prop, qsv_params_condition_extbrc);
   obs_property_set_modified_callback(Prop, ParamsVisibilityModifier);
   obs_property_set_modified_callback(Prop, ParamsVisibilityModifier);
 
   Prop = obs_properties_add_list(Props, "enctools", TEXT_ENC_TOOLS,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
-  obs_property_set_long_description(
-      Prop,
-      obs_module_text(
-          "Includes additional frame processing steps using the advanced "
-          "\nencoder functionality to improve quality. \nEnctools uses CPU "
-          "power to process the frame. \nEnabling it may affect the "
-          "performance and stability of the encoder"));
+  obs_property_set_long_description(Prop, TEXT_ENC_TOOLS_DESC);
   AddStrings(Prop, qsv_params_condition);
   obs_property_set_modified_callback(Prop, ParamsVisibilityModifier);
   obs_property_set_modified_callback(Prop, ParamsVisibilityModifier);
@@ -393,8 +384,7 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
                                 OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
     AddStrings(Prop, qsv_params_condition_tune_quality);
     obs_property_set_long_description(
-        Prop, obs_module_text("Parameter specifies type of quality "
-                              "\noptimization used by the encoder"));
+        Prop, TEXT_TUNE_QUALITY_DESC);
   }
 
   Prop = obs_properties_add_int(Props, "bitrate", TEXT_TARGET_BITRATE, 50,
@@ -432,19 +422,14 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
                                 OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
     AddStrings(Prop, qsv_params_condition_tristate);
     obs_property_set_long_description(
-        Prop, obs_module_text("Set this parameter to OFF to make HEVC encoder "
-                              "\nuse regular P-frames instead of GPB."));
+        Prop, TEXT_HEVC_GPB_DESC);
   }
 
   Prop =
       obs_properties_add_int_slider(Props, "gop_ref_dist", TEXT_GOP_REF_DIST, 1,
                                     (Codec == QSV_CODEC_AV1) ? 32 : 16, 1);
   obs_property_set_long_description(
-      Prop,
-      obs_module_text(
-          "Distance between I- or P (or GPB) - key frames; "
-          "\nif it is zero, the GOP structure is unspecified. GPB is ON, GPB "
-          "\nframes (B without backward references) are used instead of P."));
+      Prop, TEXT_GOP_REF_DIST_DESC);
   obs_property_long_description(Prop);
 
   obs_properties_add_int(Props, "async_depth", TEXT_ASYNC_DEPTH, 1, 1000, 1);
@@ -453,13 +438,7 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition_tristate);
   obs_property_set_long_description(
-      Prop,
-      obs_module_text(
-          "If this parameter is turned ON, then encoder produces an HRD "
-          "\nconformant bitstream. If it is turned OFF, then the encoder may "
-          "\n(but not necessarily) violate HRD conformance. That is, this "
-          "\nparameter can force the encoder to produce an HRD conformant "
-          "\nstream, but cannot force it to produce a non-conformant stream."));
+      Prop, TEXT_HRD_CONFORMANCE_DESC);
   obs_property_set_modified_callback(Prop, ParamsVisibilityModifier);
 
   Prop = obs_properties_add_list(Props, "low_delay_hrd", TEXT_LOW_DELAY_HRD,
@@ -472,78 +451,55 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
   AddStrings(Prop, qsv_params_condition_tristate);
   obs_property_set_modified_callback(Prop, ParamsVisibilityModifier);
   obs_property_set_long_description(
-      Prop, obs_module_text(
-                "Setting this parameter enables macroblock level bitrate "
-                "\ncontrol that generally improves subjective visual quality. "
-                "\nEnabling this flag may have negative impact on performance "
-                "\nand objective visual quality metric."));
+      Prop, TEXT_MBBRC_DESC);
 
   Prop = obs_properties_add_list(Props, "rdo", TEXT_RDO, OBS_COMBO_TYPE_LIST,
                                  OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition_tristate);
   obs_property_set_long_description(
-      Prop, obs_module_text("Set this parameter to ON if rate distortion "
-                            "optimization is needed"));
+      Prop, TEXT_RDO_DESC);
 
   Prop = obs_properties_add_list(Props, "adaptive_i", TEXT_ADAPTIVE_I,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition_tristate);
   obs_property_set_long_description(
-      Prop,
-      obs_module_text(
-          "Controls insertion of I-frames by the encoder. Set this parameter "
-          "\nto ON to allow changing of frame type from P and B to I"));
+      Prop, TEXT_ADAPTIVE_I_DESC);
 
   Prop = obs_properties_add_list(Props, "adaptive_b", TEXT_ADAPTIVE_B,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition_tristate);
   obs_property_set_long_description(
-      Prop,
-      obs_module_text(
-          "Controls changing of frame type from B to P. Set this "
-          "\nparameter to ON enable changing of frame type from B to P."));
+      Prop, TEXT_ADAPTIVE_B_DESC);
 
   Prop = obs_properties_add_list(Props, "adaptive_ref", TEXT_ADAPTIVE_REF,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition_tristate);
   obs_property_set_long_description(
-      Prop, obs_module_text(
-                "If this parameter is set to ON, encoder adaptively selects "
-                "\nlist of reference frames to improve encoding quality"));
+      Prop, TEXT_ADAPTIVE_REF_DESC);
 
   Prop = obs_properties_add_list(Props, "adaptive_ltr", TEXT_ADAPTIVE_LTR,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition_tristate);
   obs_property_set_long_description(
-      Prop, obs_module_text("If this parameter is set to ON, encoder will "
-                            "\nmark, modify, or remove LTR frames based on "
-                            "\nencoding parameters and content properties"));
+      Prop, TEXT_ADAPTIVE_LTR_DESC);
 
   Prop = obs_properties_add_list(Props, "adaptive_cqm", TEXT_ADAPTIVE_CQM,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition_tristate);
   obs_property_set_long_description(
-      Prop,
-      obs_module_text(
-          "If this parameter is set to ON, encoder adaptively selects "
-          "\none of implementation-defined quantization matrices for each "
-          "\nframe. Non-default quantization matrices aim to improve "
-          "\nsubjective visual quality under certain conditions"));
+      Prop, TEXT_ADAPTIVE_CQM_DESC);
 
   Prop = obs_properties_add_list(Props, "p_pyramid", TEXT_P_PYRAMID,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition_p_pyramid);
   obs_property_set_long_description(
-      Prop,
-      obs_module_text("When GopRefDist=1, specifies the model of "
-                      "\nreference list construction and DPB management"));
+      Prop, TEXT_P_PYRAMID_DESC);
 
   Prop = obs_properties_add_list(Props, "use_raw_ref", TEXT_USE_RAW_REF,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition_tristate);
   obs_property_set_long_description(
-      Prop, obs_module_text("Set this parameter to ON to use raw frames for "
-                            "\nreference instead of reconstructed frames"));
+      Prop, TEXT_USE_RAW_REF_DESC);
 
   Prop = obs_properties_add_list(Props, "global_motion_bias_adjustment",
                                  TEXT_GLOBAL_MOTION_BIAS_ADJUSTMENT,
@@ -551,7 +507,7 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
   AddStrings(Prop, qsv_params_condition_tristate);
   obs_property_set_modified_callback(Prop, ParamsVisibilityModifier);
   obs_property_set_long_description(
-      Prop, obs_module_text("Enables global motion bias"));
+      Prop, TEXT_GLOBAL_MOTION_BIAS_DESC);
 
   Prop = obs_properties_add_list(Props, "mv_cost_scaling_factor",
                                  TEXT_MV_COST_SCALING_FACTOR,
@@ -563,32 +519,20 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition_tristate);
   obs_property_set_long_description(
-      Prop,
-      obs_module_text(
-          "Set this parameter to ON to enable the ENC mode decision "
-          "\nalgorithm to bias to fewer B Direct/Skip types. Applies only "
-          "\nto B-frames, all other frames will ignore this setting."));
+      Prop, TEXT_DIRECT_BIAS_DESC);
 
   Prop = obs_properties_add_list(Props, "mv_overpic_boundaries",
                                  TEXT_MV_OVER_PIC_BOUNDARIES,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition_tristate);
   obs_property_set_long_description(
-      Prop,
-      obs_module_text(
-          "When set to OFF, no sample outside the picture boundaries and "
-          "\nno sample at a fractional sample position for which the "
-          "\nsample value is derived using one or more samples outside the "
-          "\npicture boundaries is used for inter prediction of any "
-          "\nsample. When set to ON, one or more samples outside picture "
-          "\nboundaries may be used in inter prediction"));
+      Prop, TEXT_MV_OVER_PIC_BOUNDARIES_DESC);
 
   Prop = obs_properties_add_list(Props, "trellis", TEXT_TRELLIS,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition_trellis);
   obs_property_set_long_description(
-      Prop,
-      obs_module_text("Used to control trellis quantization in encoder. "));
+      Prop, TEXT_TRELLIS_DESC);
 
   Prop = obs_properties_add_list(Props, "lookahead", TEXT_LA,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
@@ -599,8 +543,7 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition_lookahead_ds);
   obs_property_set_long_description(
-      Prop, obs_module_text(
-                "Controls down sampling in look ahead bitrate control mode"));
+      Prop, TEXT_LA_DS_DESC);
 
   Prop = obs_properties_add_list(Props, "lookahead_latency", TEXT_LA_LATENCY,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
@@ -610,8 +553,7 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
                                  OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition);
   obs_property_set_long_description(
-      Prop, obs_module_text("Filters for additional frame processing. Enabling "
-                            "\nit can have an impact on performance"));
+      Prop, TEXT_VPP_DESC);
   obs_property_set_modified_callback(Prop, ParamsVisibilityModifier);
 
   Prop = obs_properties_add_list(Props, "denoise_mode", TEXT_DENOISE_MODE,
@@ -651,13 +593,7 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
   AddStrings(Prop, qsv_params_condition_tristate);
   obs_property_set_modified_callback(Prop, ParamsVisibilityModifier);
   obs_property_set_long_description(
-      Prop, obs_module_text(
-                "Hint to enable low power consumption mode for encoders. \n "
-                "Intel Arc graphics adapters only work with the LowPower \n"
-                "parameter enabled, changing the state of the parameter will \n"
-                "not affect operation. The integrated Intel UHD graphics can \n"
-                "work in both modes, the available functionality may vary \n"
-                "depending on the state of the parameter."));
+      Prop, TEXT_LOW_POWER_DESC);
 
   if (Codec != QSV_CODEC_AV1) {
     Prop = obs_properties_add_list(Props, "intra_ref_encoding",
@@ -669,15 +605,12 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
     Prop = obs_properties_add_int(Props, "intra_ref_cycle_size",
                                   TEXT_INTRA_REF_CYCLE_SIZE, 2, 1000, 1);
     obs_property_set_long_description(
-        Prop,
-        obs_module_text("Specifies number of pictures within refresh cycle "
-                        "\nstarting from 2. 0 and 1 are invalid values."));
+        Prop, TEXT_INTRA_REF_CYCLE_SIZE_DESC);
 
     Prop = obs_properties_add_int(Props, "intra_ref_qp_delta",
                                   TEXT_INTRA_REF_QP_DELTA, -51, 51, 1);
     obs_property_set_long_description(
-        Prop, obs_module_text("Specifies QP difference for inserted intra MBs. "
-                              "\nSigned values are in the -51 to 51 range. "));
+        Prop, TEXT_INTRA_REF_QP_DELTA_DESC);
   }
 
   if (Codec == QSV_CODEC_HEVC) {
@@ -694,11 +627,7 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
                                                                    : 16),
                                        1);
   obs_property_set_long_description(
-      Prop,
-      obs_module_text(
-          "Max number of active references for P-frames. \nThe set values "
-          "can cause frame drops. Do not touch the values \n"
-          "of this parameter if you are not sure what you are doing."));
+      Prop, TEXT_NUM_REF_ACTIVE_P_DESC);
 
   Prop = obs_properties_add_int_slider(Props, "num_ref_active_bl0",
                                        TEXT_NUM_REF_ACTIVE_BL0, 0,
@@ -707,12 +636,7 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
                                                                    : 16),
                                        1);
   obs_property_set_long_description(
-      Prop,
-      obs_module_text(
-          "Max number of active references for B-frames in reference \n"
-          "picture list 0. The set values can cause frame drops. Do not \n"
-          "touch the values \n"
-          "of this parameter if you are not sure what you are doing."));
+      Prop, TEXT_NUM_REF_ACTIVE_BL0_DESC);
 
   Prop = obs_properties_add_int_slider(Props, "num_ref_active_bl1",
                                        TEXT_NUM_REF_ACTIVE_BL1, 0,
@@ -721,47 +645,29 @@ static obs_properties_t *GetParamProps(enum codec_enum Codec) {
                                                                    : 16),
                                        1);
   obs_property_set_long_description(
-      Prop,
-      obs_module_text(
-          "Max number of active references for B-frames in reference "
-          "picture list 1. \n The set values can cause frame drops. Do not \n"
-          "touch the values \n"
-          "of this parameter if you are not sure what you are doing."));
+      Prop, TEXT_NUM_REF_ACTIVE_BL1_DESC);
 
   Prop = obs_properties_add_list(Props, "scenario_info", TEXT_SCENARIO_INFO,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition_scenario_info);
   obs_property_set_long_description(
-      Prop,
-      obs_module_text(
-          "Specify the encoding scenario to optimize encoder settings \n"
-          "for the intended application."));
+      Prop, TEXT_SCENARIO_INFO_DESC);
 
   Prop = obs_properties_add_list(Props, "transform_skip", TEXT_TRANSFORM_SKIP,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition);
   obs_property_set_long_description(
-      Prop,
-      obs_module_text(
-          "Enable or disable transform skip. \n"
-          "When enabled, the encoder may skip the transform step \n"
-          "for certain blocks to improve compression efficiency."));
+      Prop, TEXT_TRANSFORM_SKIP_DESC);
 
   Prop = obs_properties_add_list(Props, "fade_detection", TEXT_FADE_DETECTION,
                                  OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
   AddStrings(Prop, qsv_params_condition);
   obs_property_set_long_description(
-      Prop,
-      obs_module_text(
-          "Detect fade scenes and adjust encoding parameters. \n"
-          "AUTO lets the encoder decide when to enable fade detection."));
+      Prop, TEXT_FADE_DETECTION_DESC);
 
   Prop = obs_properties_add_int(Props, "gpu_number", TEXT_GPU_NUMBER, 0, 4, 1);
   obs_property_set_long_description(
-      Prop, obs_module_text(
-                "Choosing a graphics adapter for multi-GPU systems. \n The "
-                "number of the adapter you need may vary depending on \n"
-                "the priority set by the system"));
+      Prop, TEXT_GPU_NUMBER_DESC);
   obs_property_set_modified_callback(Prop, ParamsVisibilityModifier);
 
   return Props;

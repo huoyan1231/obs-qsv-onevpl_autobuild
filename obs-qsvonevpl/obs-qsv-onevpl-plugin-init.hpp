@@ -118,6 +118,65 @@ static inline const char *TEXT_INTRA_REF_QP_DELTA =
 
 static inline const char *TEXT_GPU_NUMBER = obs_module_text("Select GPU");
 
+static inline const char *TEXT_ENC_TOOLS_DESC =
+    obs_module_text("EncTools.Tooltip");
+static inline const char *TEXT_TUNE_QUALITY_DESC =
+    obs_module_text("TuneQuality.Tooltip");
+static inline const char *TEXT_HEVC_GPB_DESC =
+    obs_module_text("HEVCGPB.Tooltip");
+static inline const char *TEXT_GOP_REF_DIST_DESC =
+    obs_module_text("GOPRefDistDesc");
+static inline const char *TEXT_HRD_CONFORMANCE_DESC =
+    obs_module_text("HRDConformanceDesc");
+static inline const char *TEXT_MBBRC_DESC = obs_module_text("MBBRCDesc");
+static inline const char *TEXT_RDO_DESC = obs_module_text("RDODesc");
+static inline const char *TEXT_ADAPTIVE_I_DESC =
+    obs_module_text("AdaptiveIDesc");
+static inline const char *TEXT_ADAPTIVE_B_DESC =
+    obs_module_text("AdaptiveBDesc");
+static inline const char *TEXT_ADAPTIVE_REF_DESC =
+    obs_module_text("AdaptiveRefDesc");
+static inline const char *TEXT_ADAPTIVE_LTR_DESC =
+    obs_module_text("AdaptiveLTRDesc");
+static inline const char *TEXT_ADAPTIVE_CQM_DESC =
+    obs_module_text("AdaptiveCQMDesc");
+static inline const char *TEXT_P_PYRAMID_DESC =
+    obs_module_text("PPyramidDesc");
+static inline const char *TEXT_USE_RAW_REF_DESC =
+    obs_module_text("UseRawRefDesc");
+static inline const char *TEXT_GLOBAL_MOTION_BIAS_DESC =
+    obs_module_text("GlobalMotionBiasDesc");
+static inline const char *TEXT_DIRECT_BIAS_DESC =
+    obs_module_text("DirectBiasDesc");
+static inline const char *TEXT_MV_OVER_PIC_BOUNDARIES_DESC =
+    obs_module_text("MVOverpicBoundariesDesc");
+static inline const char *TEXT_TRELLIS_DESC = obs_module_text("TrellisDesc");
+static inline const char *TEXT_LA_DS_DESC = obs_module_text("LookaheadDSDesc");
+static inline const char *TEXT_VPP_DESC = obs_module_text("VPPDesc");
+static inline const char *TEXT_LOW_POWER_DESC =
+    obs_module_text("LowPowerDesc");
+static inline const char *TEXT_INTRA_REF_CYCLE_SIZE_DESC =
+    obs_module_text("IntraRefCycleSizeDesc");
+static inline const char *TEXT_INTRA_REF_QP_DELTA_DESC =
+    obs_module_text("IntraRefQPDeltaDesc");
+static inline const char *TEXT_NUM_REF_ACTIVE_P_DESC =
+    obs_module_text("NumRefActivePDesc");
+static inline const char *TEXT_NUM_REF_ACTIVE_BL0_DESC =
+    obs_module_text("NumRefActiveBL0Desc");
+static inline const char *TEXT_NUM_REF_ACTIVE_BL1_DESC =
+    obs_module_text("NumRefActiveBL1Desc");
+static inline const char *TEXT_SCENARIO_INFO_DESC =
+    obs_module_text("ScenarioInfoDesc");
+static inline const char *TEXT_TRANSFORM_SKIP_DESC =
+    obs_module_text("TransformSkipDesc");
+static inline const char *TEXT_FADE_DETECTION_DESC =
+    obs_module_text("FadeDetectionDesc");
+
+static inline const char *TEXT_EXT_BRC_DESC =
+    obs_module_text("ExtBRCDesc");
+static inline const char *TEXT_GPU_NUMBER_DESC =
+    obs_module_text("GPUNumberDesc");
+
 static const char *const qsv_ratecontrols_h264[] = {"CBR", "VBR", "CQP", "AVBR",
                                                     "ICQ", "VCM", "LA_ICQ",
                                                     "QVBR", 0};

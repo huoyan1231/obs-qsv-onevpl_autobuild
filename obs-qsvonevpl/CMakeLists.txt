@@ -53,6 +53,20 @@ target_compile_options(obs-qsvonevpl PRIVATE "/Gy")
 target_link_options(obs-qsvonevpl PRIVATE "/LTCG" "/INCREMENTAL:NO")
 endif()
 
+# Install rules
+install(
+  TARGETS obs-qsvonevpl
+  RUNTIME DESTINATION "obs-plugins/64bit"
+  LIBRARY DESTINATION "obs-plugins"
+)
+
+install(
+  FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/locale/en-US.ini
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/locale/zh-CN.ini
+  DESTINATION "data/obs-plugins/obs-qsvonevpl/locale"
+)
+
 # Windows
 if(WIN32)
   target_compile_definitions(obs-qsvonevpl PRIVATE DX11_D3D)
